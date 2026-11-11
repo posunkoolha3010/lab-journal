@@ -222,6 +222,7 @@ aside.drawer.open{transform:none}
 .sec-h h3{font-size:13px;font-family:var(--font-display);font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .stage{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:10px}
 .stage.babtai{border-left-color:var(--babtai)} .stage.kaunas{border-left-color:var(--kaunas)}
+.stage.flash{box-shadow:0 0 0 3px var(--accent);transition:box-shadow .3s}
 .stage.done{background:color-mix(in srgb,var(--accent-soft) 35%,var(--surface))}
 .stage-top{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
 .stage-row2{display:grid;grid-template-columns:150px 150px 1fr;gap:8px}
@@ -1096,6 +1097,10 @@ function calEvents() {
   }
   return by;
 }
+// After opening an experiment from the calendar, bring that day's step into view.
+function focusStage(d) {
+  setTimeout(() => { const el = $(`#drBody .stage[data-date="${d}"]`); if (!el) return; el.scrollIntoView({ block: "start", behavior: "smooth" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1800); }, 260);
+}
 function addMonths(ym, n) { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
 function viewCalendar() {
   const ev = calEvents(); const ym = UI.calMonth; const [y, m] = ym.split("-").map(Number);
@@ -1115,7 +1120,7 @@ function viewCalendar() {
   const monthDays = Object.keys(ev).filter(d => d.startsWith(ym)).sort();
   const yearCounts = [...Array(12)].map((_, i) => { const k = y + "-" + String(i + 1).padStart(2, "0"); return [k, Object.keys(ev).filter(d => d.startsWith(k)).length]; });
   const dayItems = UI.calDay ? (ev[UI.calDay] || []) : null;
-  const itemRow = (d, x) => { const e = S.exp[x.id]; return `<button type="button" class="cal-row" data-open-exp="${esc(x.id)}"><span class="cal-row-d">${fmtDate(d)}</span><span><b>${esc(e.title)}</b>${x.stages.length ? `<span class="small">${esc(x.stages.join(" · "))}</span>` : ""}</span><span class="cal-row-s">${x.sites.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("")}</span></button>`; };
+  const itemRow = (d, x) => { const e = S.exp[x.id]; return `<button type="button" class="cal-row" data-open-exp="${esc(x.id)}" data-day="${d}"><span class="cal-row-d">${fmtDate(d)}</span><span><b>${esc(e.title)}</b>${x.stages.length ? `<span class="small">${esc(x.stages.join(" · "))}</span>` : ""}</span><span class="cal-row-s">${x.sites.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("")}</span></button>`; };
   return `<div class="cal-head">
       <button class="btn" type="button" data-act="cal-prev" aria-label="${tr("cal.prev")}">‹</button>
       <h2 class="cal-title">${fmtMonth(ym)}</h2>
@@ -1295,7 +1300,7 @@ function viewExp(id, e) {
 }
 function viewStage(eid, e, s, i) {
   const p = `stages.${i}`;
-  return `<div class="stage ${esc(s.site)} ${s.done ? "done" : ""}">
+  return `<div class="stage ${esc(s.site)} ${s.done ? "done" : ""}" data-date="${esc(s.date || "")}">
     <div class="stage-top"><label class="check"><input type="checkbox" id="s-${s.id}-done" data-f="${p}.done" ${s.done ? "checked" : ""}><span class="stage-num">${i + 1}</span></label>
       <input type="text" id="s-${s.id}-t" data-f="${p}.title" value="${esc(s.title)}" placeholder="${tr("s.titlePh")}" aria-label="${tr("s.titleAria")}">
       <span class="row-actions"><button class="icon-btn" type="button" data-act="stage-up" data-i-key="${i}" aria-label="${tr("s.up")}" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" type="button" data-act="del-stage" data-i-key="${i}" aria-label="${tr("s.del")}">✕</button></span></div>
@@ -1514,7 +1519,7 @@ document.addEventListener("click", (ev) => {
   const m = t.closest("[data-m]");
   if (m) { if (m.dataset.m === "cancel") Modal.close(); else if (Modal.onOk && Modal.onOk() !== false) Modal.close(); return; }
   if (t.id === "modal") { Modal.close(); return; }
-  const oe = t.closest("[data-open-exp]"); if (oe) { ev.preventDefault(); Drawer.open("experiments", oe.dataset.openExp); return; }
+  const oe = t.closest("[data-open-exp]"); if (oe) { ev.preventDefault(); Drawer.open("experiments", oe.dataset.openExp); if (oe.dataset.day) focusStage(oe.dataset.day); return; }
   const oz = t.closest("[data-open-smp]"); if (oz) { ev.preventDefault(); Drawer.open("samples", oz.dataset.openSmp); return; }
   const or = t.closest("[data-open-rea]"); if (or) { ev.preventDefault(); Drawer.open("reagents", or.dataset.openRea); return; }
   if (t.id === "scrim") { Drawer.close(); return; }
@@ -1532,7 +1537,7 @@ document.addEventListener("click", (ev) => {
     case "cal-today": UI.calMonth = today().slice(0, 7); UI.calDay = today(); render(); break;
     case "cal-month": UI.calMonth = a.dataset.month; UI.calDay = ""; render(); break;
     case "cal-clear": UI.calDay = ""; render(); break;
-    case "cal-day": { const d = a.dataset.d; const items = calEvents()[d] || []; UI.calDay = d; render(); if (items.length === 1) Drawer.open("experiments", items[0].id); break; }
+    case "cal-day": { const d = a.dataset.d; const items = calEvents()[d] || []; UI.calDay = d; render(); if (items.length === 1) { Drawer.open("experiments", items[0].id); focusStage(d); } break; }
     case "del-smp": confirmBox(tr("fz.delTitle"), tr("fz.delText", esc(o.label || "")), tr("del"), () => { const id = Drawer.id; remove("samples", id); Drawer.close(); }); break;
     case "del-parent": o.parentIds = parentsOf(o).filter(x => x !== a.dataset.pid); delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); break;
     case "new-rea": newReagent(); break;
