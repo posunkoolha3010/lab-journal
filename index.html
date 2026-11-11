@@ -147,6 +147,13 @@ section.block{display:grid;gap:10px}
 .pchip{display:inline-flex;align-items:center;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 2px 2px 10px;font-size:13px}
 .parents select{width:auto;max-width:100%}
 @media (max-width:640px){.node{flex-wrap:wrap}.node-main{grid-template-columns:1fr}.kids{margin-left:8px;padding-left:8px}}
+.tag.fzs-stored{background:var(--kaunas-soft);color:var(--kaunas);border-color:transparent}
+.tag.fzs-partial{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tag.fz{background:var(--kaunas-soft);color:var(--kaunas);border-color:transparent}
+tr.fz-used td,tr.fz-discarded td{opacity:.55}
+.fzbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;border-radius:var(--r);background:var(--bg)}
+.fzbox .lbl{width:100%;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.fzbox .pchip{padding:3px 10px;text-decoration:none}
 select.lang{width:auto;padding:5px 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* reagents table */
@@ -237,6 +244,7 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
     <nav class="tabs" data-i-aria="nav.aria">
       <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
       <a href="#chains" data-tab="chains" data-i-key="tabs.chains"></a>
+      <a href="#freezer" data-tab="freezer" data-i-key="tabs.freezer"></a>
       <a href="#reagents" data-tab="reagents" data-i-key="tabs.reagents"></a>
     </nav>
     <div class="spacer"></div>
@@ -344,6 +352,7 @@ const I18N = {
   "toast.notJournal": ["Это не файл журнала", "Це не файл журналу", "Tai ne žurnalo failas", "This is not a journal file"],
   "toast.newerLocal": ["В браузере были более новые записи: они сохранены в файл", "У браузері були новіші записи: їх збережено у файл", "Naršyklėje buvo naujesnių įrašų: jie išsaugoti faile", "The browser had newer records: they were saved to the file"],
   "toast.noPerm": ["Без разрешения на запись файл не будет обновляться", "Без дозволу на запис файл не оновлюватиметься", "Be leidimo rašyti failas nebus atnaujinamas", "Without write permission the file won't be updated"],
+  "toast.extChange": ["Файл журнала изменился вне этой вкладки: загружена версия из файла", "Файл журналу змінився поза цією вкладкою: завантажено версію з файлу", "Žurnalo failas pasikeitė už šio skirtuko ribų: įkelta failo versija", "The journal file changed outside this tab: loaded the version from the file"],
   "toast.opened": ["Открыт {0}", "Відкрито {0}", "Atidaryta: {0}", "Opened {0}"],
   "toast.saveFail": ["Не получилось сохранить файл", "Не вдалося зберегти файл", "Nepavyko išsaugoti failo", "Couldn't save the file"],
   "toast.copied": ["Резервная копия скопирована в буфер обмена", "Резервну копію скопійовано в буфер обміну", "Atsarginė kopija nukopijuota į iškarpinę", "Backup copied to the clipboard"],
@@ -546,6 +555,42 @@ const I18N = {
   "dr.text": ["«{0}» исчезнет из списка.", "«{0}» зникне зі списку.", "„{0}“ dings iš sąrašo.", "“{0}” will disappear from the list."],
   "dr.used": ["В экспериментах есть {0} записей расхода, они останутся с пометкой «удалён».", "В експериментах є {0} записів витрати, вони залишаться з позначкою «видалено».", "Eksperimentuose yra {0} sunaudojimo įrašų, jie liks pažymėti „ištrintas“.", "Experiments have {0} usage entries for it; they stay, marked “deleted”."],
   "db.title": ["Удалить запись партии?", "Видалити запис партії?", "Ištrinti partijos įrašą?", "Delete this batch entry?"],
+  "tabs.freezer": ["Морозилка −80", "Морозилка −80", "Šaldiklis −80", "Freezer −80"],
+  "fz.new": ["+ Образцы в морозилку", "+ Зразки в морозилку", "+ Mėginiai į šaldiklį", "+ Add samples"],
+  "fz.search": ["Поиск по подписи, материалу, месту", "Пошук за підписом, матеріалом, місцем", "Ieškoti pagal etiketę, medžiagą, vietą", "Search labels, material, location"],
+  "fz.showUsed": ["Показывать израсходованные", "Показувати витрачені", "Rodyti sunaudotus", "Show used up"],
+  "stat.fzIn": ["наборов образцов в −80", "наборів зразків у −80", "mėginių rinkinių −80", "sample sets at −80"],
+  "stat.fzNoLoc": ["без указанного места", "без вказаного місця", "be nurodytos vietos", "with no location"],
+  "fz.st.stored": ["В морозилке", "У морозилці", "Šaldiklyje", "In freezer"],
+  "fz.st.partial": ["Частично использованы", "Частково використано", "Iš dalies panaudoti", "Partly used"],
+  "fz.st.used": ["Израсходованы", "Витрачено", "Sunaudoti", "Used up"],
+  "fz.st.discarded": ["Выброшены", "Викинуто", "Išmesti", "Discarded"],
+  "fz.siteH": ["Морозилка −80, {0}", "Морозилка −80, {0}", "Šaldiklis −80, {0}", "−80 freezer, {0}"],
+  "fz.noSite": ["Лаборатория не указана", "Лабораторію не вказано", "Laboratorija nenurodyta", "Lab not set"],
+  "fz.empty": ["В морозилке пока ничего не записано.", "У морозилці поки нічого не записано.", "Šaldiklyje kol kas nieko neįrašyta.", "Nothing recorded in the freezer yet."],
+  "th.stored": ["Положены", "Покладено", "Padėti", "Stored"],
+  "th.what": ["Образцы", "Зразки", "Mėginiai", "Samples"],
+  "th.loc": ["Место", "Місце", "Vieta", "Location"],
+  "th.tubes": ["Пробирок", "Пробірок", "Mėgintuvėlių", "Tubes"],
+  "th.done": ["Что с ними сделано", "Що з ними зроблено", "Kas su jais padaryta", "What was done with them"],
+  "dr.fz": ["Образцы в −80", "Зразки в −80", "Mėginiai −80", "Samples at −80"],
+  "f.label": ["Подпись на пробирках", "Підпис на пробірках", "Užrašas ant mėgintuvėlių", "Tube label"],
+  "f.labelPh": ["например C1–C3, T1–T6 260914", "наприклад C1–C3, T1–T6 260914", "pvz., C1–C3, T1–T6 260914", "e.g. C1–C3, T1–T6 260914"],
+  "f.material": ["Что это", "Що це", "Kas tai", "Material"],
+  "f.materials": ["Сшитая ткань|Фракция S1|Фракция S2|Фракция S3|N (ядерный осадок)|Белковый осадок после TCA|Белок в Tris-SDS-DTT", "Зшита тканина|Фракція S1|Фракція S2|Фракція S3|N (ядерний осад)|Білковий осад після TCA|Білок у Tris-SDS-DTT", "Sukryžminti audiniai|S1 frakcija|S2 frakcija|S3 frakcija|N (branduolių nuosėdos)|Baltymų nuosėdos po TCA|Baltymai Tris-SDS-DTT", "Crosslinked tissue|S1 fraction|S2 fraction|S3 fraction|N (nuclear pellet)|TCA protein pellet|Protein in Tris-SDS-DTT"],
+  "f.fromExp": ["Из эксперимента", "З експерименту", "Iš eksperimento", "From experiment"],
+  "f.fzLoc": ["Где лежат (полка, штатив, коробка)", "Де лежать (полиця, штатив, коробка)", "Kur laikomi (lentyna, stovas, dėžutė)", "Where (shelf, rack, box)"],
+  "f.fzLocPh": ["полка 2, коробка «Olha», ряд B", "полиця 2, коробка «Olha», ряд B", "2 lentyna, dėžutė „Olha“, B eilė", "shelf 2, box “Olha”, row B"],
+  "f.tubes": ["Сколько пробирок", "Скільки пробірок", "Kiek mėgintuvėlių", "Number of tubes"],
+  "f.stored": ["Дата закладки", "Дата закладки", "Padėjimo data", "Date stored"],
+  "fz.logHint": ["Записывайте, когда брали пробирки и зачем: «взяла T1–T3 на western blot».", "Записуйте, коли брали пробірки і навіщо: «взяла T1–T3 на western blot».", "Užsirašykite, kada ir kam ėmėte mėgintuvėlius: „paėmiau T1–T3 western blot“.", "Note when you took tubes and why: “took T1–T3 for western blot”."],
+  "fz.logPh": ["Что сделано…", "Що зроблено…", "Kas padaryta…", "What was done…"],
+  "fz.autoUsed": ["По цепочке образцы из этого эксперимента использованы в:", "За ланцюжком зразки з цього експерименту використано в:", "Pagal grandinę šio eksperimento mėginiai panaudoti:", "By the chain, samples from this experiment were used in:"],
+  "fz.addFromExp": ["+ В морозилку −80", "+ У морозилку −80", "+ Į šaldiklį −80", "+ Put in −80 freezer"],
+  "fz.none": ["Из этого эксперимента в морозилке ничего не записано.", "З цього експерименту в морозилці нічого не записано.", "Iš šio eksperimento šaldiklyje nieko neįrašyta.", "Nothing from this experiment is recorded in the freezer."],
+  "fz.delTitle": ["Удалить запись из морозилки?", "Видалити запис з морозилки?", "Ištrinti šaldiklio įrašą?", "Delete this freezer entry?"],
+  "fz.delText": ["«{0}» исчезнет из списка морозилки. Если образцы израсходованы, лучше поставить статус «Израсходованы».", "«{0}» зникне зі списку морозилки. Якщо зразки витрачено, краще поставити статус «Витрачено».", "„{0}“ dings iš šaldiklio sąrašo. Jei mėginiai sunaudoti, geriau nustatyti būseną „Sunaudoti“.", "“{0}” will disappear from the freezer list. If the samples are used up, set the status to “Used up” instead."],
+  "fz.newLabel": ["Новые образцы", "Нові зразки", "Nauji mėginiai", "New samples"],
   "tabs.chains": ["Цепочки образцов", "Ланцюжки зразків", "Mėginių grandinės", "Sample chains"],
   "ch.waitingH": ["Образцы ждут работы", "Зразки чекають на роботу", "Mėginiai laukia darbo", "Samples waiting"],
   "ch.waitingHint": ["Эти эксперименты закончены, но их образцы ещё нигде дальше не использованы.", "Ці експерименти завершено, але їхні зразки ще ніде далі не використано.", "Šie eksperimentai baigti, bet jų mėginiai dar niekur toliau nepanaudoti.", "These experiments are finished, but their samples haven't been used in any later experiment yet."],
@@ -571,7 +616,6 @@ const I18N = {
 };
 function pickLang() {
   const saved = lsGet("labjournal.lang", null); if (saved && LANGS[saved]) return saved;
-  for (const l of (navigator.languages || [navigator.language || ""])) { const c = String(l).slice(0, 2).toLowerCase(); if (LANGS[c]) return c; }
   return "en";
 }
 let LANG = pickLang();
@@ -637,8 +681,8 @@ function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 
 /* ============================== store ============================== */
-const S = { exp: {}, rea: {}, mode: "loading", ready: false, readOnly: false };
-const COLL = { experiments: "exp", reagents: "rea" };
+const S = { exp: {}, rea: {}, smp: {}, mode: "loading", ready: false, readOnly: false };
+const COLL = { experiments: "exp", reagents: "rea", samples: "smp" };
 let DB = null, downloads = null;
 const timers = new Map(), inflight = new Set(), again = new Set(), dirty = new Set();
 const LOCAL_KEY = "labjournal.local.v1";
@@ -675,12 +719,12 @@ async function flush(coll, id) {
   }
 }
 function remove(coll, id) { delete mapOf(coll)[id]; save(coll, id, 0); }
-function payload() { return { app: "labjournal", version: 1, savedAt: S.savedAt || Date.now(), experiments: S.exp, reagents: S.rea }; }
+function payload() { return { app: "labjournal", version: 1, savedAt: S.savedAt || Date.now(), experiments: S.exp, reagents: S.rea, samples: S.smp }; }
 function persistLocal() { S.savedAt = Date.now(); lsSet(LOCAL_KEY, payload()); fileSchedule(); }
 
 /* ---------- journal file on disk (outside claude.ai, Chrome/Edge): the file is the user's own copy ---------- */
 let FSA = false; try { FSA = "showOpenFilePicker" in window && window.self === window.top; } catch {}
-const FL = { handle: null, name: "", need: false, writing: false, again: false, timer: null, savedAt: 0, error: "" };
+const FL = { known: 0, handle: null, name: "", need: false, writing: false, again: false, timer: null, savedAt: 0, error: "" };
 let idb = null;
 function idbOpen() { return new Promise(res => { try { const r = indexedDB.open("labjournal", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = r.onblocked = () => res(null); } catch { res(null); } }); }
 function idbDo(mode, fn) { return new Promise(res => { if (!idb) return res(undefined); try { const tx = idb.transaction("kv", mode); const rq = fn(tx.objectStore("kv")); tx.oncomplete = () => res(rq.result); tx.onerror = tx.onabort = () => res(undefined); } catch { res(undefined); } }); }
@@ -699,9 +743,18 @@ async function fileWrite() {
   if (FL.writing) { FL.again = true; return; }
   FL.writing = true; fileStatus();
   try {
+    // Don't overwrite a newer file written elsewhere (another tab, another device, a sync folder).
+    try {
+      const f = await FL.handle.getFile();
+      if (FL.known && f.lastModified > FL.known + 1500) {
+        const d = parseJournal(await f.text());
+        if ((d.savedAt || 0) > (S.savedAt || 0)) { FL.known = f.lastModified; applyData(d); toast(tr("toast.extChange")); return; }
+      }
+    } catch {}
     const w = await FL.handle.createWritable();
     await w.write(JSON.stringify(payload(), null, 1)); await w.close();
     FL.savedAt = Date.now(); FL.error = "";
+    try { FL.known = (await FL.handle.getFile()).lastModified; } catch {}
   } catch (e) {
     FL.error = (e && e.message) || "error";
     if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) { FL.need = true; render(); }
@@ -711,7 +764,7 @@ async function fileWrite() {
   }
 }
 function applyData(d) {
-  S.exp = d.experiments || {}; S.rea = d.reagents || {}; S.savedAt = d.savedAt || Date.now();
+  S.exp = d.experiments || {}; S.rea = d.reagents || {}; S.smp = d.samples || {}; S.savedAt = d.savedAt || Date.now();
   lsSet(LOCAL_KEY, payload()); render(); if (Drawer.coll) Drawer.render();
 }
 function parseJournal(txt) {
@@ -725,7 +778,7 @@ async function fileAttach(handle, fresh) {
   await idbPut("file", handle);
   if (fresh) { await fileWrite(); render(); toast(tr("toast.fileLinked", handle.name)); return; }
   let d = null;
-  try { const t = await (await handle.getFile()).text(); d = t.trim() ? parseJournal(t) : null; }
+  try { const fobj = await handle.getFile(); FL.known = fobj.lastModified; const t = await fobj.text(); d = t.trim() ? parseJournal(t) : null; }
   catch { FL.handle = null; FL.name = ""; await idbDel("file"); toast(tr("toast.notJournal")); render(); return; }
   if (!d) { await fileWrite(); }
   else if ((d.savedAt || 0) >= (S.savedAt || 0) || !Object.keys(S.exp).length) applyData(d);
@@ -764,7 +817,7 @@ function fileBanner() {
 
 async function startLocal() {
   S.mode = "local"; const d = lsGet(LOCAL_KEY, { experiments: {}, reagents: {} });
-  S.exp = d.experiments || {}; S.rea = d.reagents || {}; S.savedAt = d.savedAt || 0; S.ready = true;
+  S.exp = d.experiments || {}; S.rea = d.reagents || {}; S.smp = d.samples || {}; S.savedAt = d.savedAt || 0; S.ready = true;
   fileStatus(); render();
   if (!FSA) return;
   idb = await idbOpen(); const h = await idbGet("file"); if (!h) return;
@@ -780,9 +833,9 @@ async function init() {
   try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
   try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch { downloads = null; }
   if (!db) { startLocal(); return; }
-  DB = db; S.mode = "db"; const got = { experiments: false, reagents: false };
+  DB = db; S.mode = "db"; const got = { experiments: false, reagents: false, samples: false };
   const timeout = setTimeout(() => { if (!S.ready) { setSync("err", tr("sync.offline")); S.ready = true; S.slow = true; render(); } }, 10000);
-  for (const coll of ["experiments", "reagents"]) {
+  for (const coll of ["experiments", "reagents", "samples"]) {
     DB.collection(coll).onSnapshot((snap) => {
       const m = mapOf(coll); let openTouched = false;
       for (const ch of snap.docChanges()) {
@@ -792,7 +845,7 @@ async function init() {
         if (Drawer.coll === coll && Drawer.id === id) openTouched = true;
       }
       if (!snap.metadata.fromCache) { got[coll] = true; }
-      if (got.experiments && got.reagents) { clearTimeout(timeout); S.ready = true; S.slow = false; if (!timers.size && !inflight.size) setSync("ok", tr("sync.ok")); }
+      if (got.experiments && got.reagents && got.samples) { clearTimeout(timeout); S.ready = true; S.slow = false; if (!timers.size && !inflight.size) setSync("ok", tr("sync.ok")); }
       else if (!S.ready && snap.size) S.ready = true;
       render(); if (openTouched) Drawer.remoteChanged();
     }, (e) => { clearTimeout(timeout); setSync("err", e && e.code === "revoked" ? tr("sync.revoked") : tr("sync.offline")); S.ready = true; render(); });
@@ -831,7 +884,7 @@ function isLow(r, bal) { return r.kind !== "mix" && bal != null && ((r.low != nu
 function lastUse(L) { for (let i = L.events.length - 1; i >= 0; i--) if (L.events[i].kind === "use") return L.events[i]; return null; }
 
 /* ============================== UI state & render ============================== */
-const UI = { onlyWaiting: false, tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
+const UI = { fzShowUsed: false, onlyWaiting: false, tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
 
 function applyStaticAll() {
   document.documentElement.lang = LANG;
@@ -849,7 +902,7 @@ function setLang(l) {
   render(); if (Drawer.coll) Drawer.render();
 }
 function render() {
-  const h = (location.hash || "#journal").slice(1); UI.tab = h === "reagents" || h === "chains" ? h : "journal";
+  const h = (location.hash || "#journal").slice(1); UI.tab = ["reagents", "chains", "freezer"].includes(h) ? h : "journal";
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === UI.tab ? "page" : "false"));
   $$(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.site === UI.site)));
   const main = $("#main");
@@ -859,7 +912,7 @@ function render() {
   main.innerHTML = (S.readOnly ? `<div class="banner">${tr("banner.readonly")}</div>` : "")
     + fileBanner()
     + (S.slow ? `<div class="banner">${tr("banner.slow")}</div>` : "")
-    + (UI.tab === "journal" ? viewJournal() : UI.tab === "chains" ? viewChains() : viewReagents());
+    + (UI.tab === "journal" ? viewJournal() : UI.tab === "chains" ? viewChains() : UI.tab === "freezer" ? viewFreezer() : viewReagents());
   if (keepFocus) { const el = document.getElementById(keepFocus); if (el) { el.focus(); try { el.setSelectionRange(sel[0], sel[1]); } catch {} } }
 }
 let renderT; function renderSoon() { clearTimeout(renderT); renderT = setTimeout(render, 150); }
@@ -942,7 +995,7 @@ function nodeHTML(id, kids) {
     <button type="button" class="node-main" data-open-exp="${esc(id)}">
       <span class="d"><b>${fmtDate(e.startDate)}</b><br>${d2 ? "→ " + fmtDate(d2) : esc((e.startDate || "").slice(0, 4))}</span>
       <span><span class="node-t">${esc(e.title || tr("untitled"))}</span>
-        <span class="meta"><span class="tag">${esc(TYPES[e.type]?.name || "")}</span>${path.length ? `<span class="path">${path.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("→")}</span>` : ""}<span class="tag st-${esc(e.status)}">${STATUS[e.status] || ""}</span>${wait ? `<span class="tag wait">${tr("ch.waitBadge")}</span>` : ""}${PRODUCES.has(e.type) && loc ? `<span class="tag ${loc === "used" ? "" : "loc"}">${tr("sa.chip", locLabel(loc))}</span>` : ""}</span>
+        <span class="meta"><span class="tag">${esc(TYPES[e.type]?.name || "")}</span>${path.length ? `<span class="path">${path.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("→")}</span>` : ""}<span class="tag st-${esc(e.status)}">${STATUS[e.status] || ""}</span>${wait ? `<span class="tag wait">${tr("ch.waitBadge")}</span>` : ""}${PRODUCES.has(e.type) && loc ? `<span class="tag ${loc === "used" ? "" : "loc"}">${tr("sa.chip", locLabel(loc))}</span>` : ""}${(() => { const n = Object.values(S.smp).filter(z => z.experimentId === id && fzActive(z)).length; return n ? `<span class="tag fz">−80: ${n}</span>` : ""; })()}</span>
         ${e.samples ? `<span class="sub">${esc(e.samples)}</span>` : ""}</span>
     </button>
     ${S.readOnly ? "" : `<button type="button" class="btn sm ghost next" data-act="next-step" data-id="${esc(id)}">${tr("ch.next")}</button>`}
@@ -989,6 +1042,70 @@ function viewChains() {
   return html;
 }
 
+/* ---------- −80 freezer ---------- */
+const FZ_ST = labels("fz.st.", ["stored", "partial", "used", "discarded"]);
+const fzActive = (o) => o.status !== "used" && o.status !== "discarded";
+function fzUsedIn(o, kids) { return o.experimentId && S.exp[o.experimentId] ? (kids[o.experimentId] || []) : []; }
+function viewFreezer() {
+  const kids = childIndex(); const q = UI.q.trim().toLowerCase();
+  const all = Object.entries(S.smp).filter(([, o]) => UI.site === "all" || o.site === UI.site);
+  const rows = all.filter(([, o]) => UI.fzShowUsed || fzActive(o))
+    .filter(([, o]) => !q || JSON.stringify([o.label, o.material, o.location, o.notes, (o.log || []).map(l => l.text), S.exp[o.experimentId]?.title]).toLowerCase().includes(q))
+    .sort((a, b) => (b[1].stored || "").localeCompare(a[1].stored || ""));
+  const act = all.filter(([, o]) => fzActive(o));
+  let html = `<div class="toolbar">
+    <button class="btn primary" type="button" data-act="fz-add" ${S.readOnly ? "disabled" : ""}>${tr("fz.new")}</button>
+    <input type="search" id="q" placeholder="${tr("fz.search")}" value="${esc(UI.q)}" aria-label="${tr("search.aria")}">
+    <label class="check"><input type="checkbox" id="fFzUsed" ${UI.fzShowUsed ? "checked" : ""}> ${tr("fz.showUsed")}</label>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>${act.length}</b><span>${tr("stat.fzIn")}</span></div>
+    ${Object.entries(SITES).map(([k, n]) => `<div class="stat"><b>${act.filter(([, o]) => o.site === k).length}</b><span>${tr("fz.siteH", n)}</span></div>`).join("")}
+    <div class="stat ${act.some(([, o]) => !o.location) ? "warn" : ""}"><b>${act.filter(([, o]) => !o.location).length}</b><span>${tr("stat.fzNoLoc")}</span></div>
+  </div>`;
+  if (!Object.keys(S.smp).length) return html + `<div class="empty">${tr("fz.empty")}</div>`;
+  if (!rows.length) return html + `<div class="empty">${tr("j.nothing")}</div>`;
+  for (const site of [...Object.keys(SITES), ""]) {
+    const g = rows.filter(([, o]) => (o.site || "") === site); if (!g.length) continue;
+    html += `<section class="block"><div class="block-h">${site ? tr("fz.siteH", SITES[site]) : tr("fz.noSite")} <span class="n">${g.length}</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th>${tr("th.stored")}</th><th>${tr("th.what")}</th><th class="hide-m">${tr("th.loc")}</th><th class="r hide-m">${tr("th.tubes")}</th><th>${tr("f.status")}</th><th class="hide-m">${tr("th.done")}</th></tr></thead><tbody>
+    ${g.map(([id, o]) => { const used = fzUsedIn(o, kids); const last = (o.log || []).slice(-2).reverse();
+      return `<tr class="click fz-${esc(o.status)}" data-open-smp="${esc(id)}" tabindex="0">
+        <td class="num">${o.stored ? fmtDate(o.stored, true) : "—"}</td>
+        <td><span class="rname">${esc(o.label || tr("untitled"))}</span>${o.material ? `<span class="small">${esc(o.material)}</span>` : ""}${o.experimentId && S.exp[o.experimentId] ? `<span class="small">${tr("f.fromExp")}: ${esc(S.exp[o.experimentId].title)}</span>` : ""}</td>
+        <td class="hide-m">${o.location ? esc(o.location) : "<span class=small>—</span>"}</td>
+        <td class="r num hide-m">${esc(o.tubes ?? "")}</td>
+        <td><span class="tag fzs-${esc(o.status)}">${FZ_ST[o.status] || ""}</span></td>
+        <td class="hide-m">${last.map(l => `<span class="small">${l.date ? fmtDate(l.date) + ": " : ""}${esc(l.text)}</span>`).join("")}${used.map(cid => `<span class="small">→ ${esc(S.exp[cid].title)}</span>`).join("") || (last.length ? "" : "—")}</td></tr>`; }).join("")}
+    </tbody></table></div></section>`;
+  }
+  return html;
+}
+function newSample(expId) {
+  const e = expId && S.exp[expId]; const id = uid("z_"); const loc = e ? samplesLoc(e) : "";
+  S.smp[id] = { label: e ? (e.samples || e.title) : tr("fz.newLabel"), material: "", experimentId: e ? expId : "", site: loc && loc !== "used" ? loc : (UI.site !== "all" ? UI.site : "babtai"), location: "", tubes: "", stored: e ? (e.endDate || e.startDate || today()) : today(), status: "stored", notes: "", log: [], createdAt: Date.now(), updatedAt: Date.now() };
+  save("samples", id, 0); render(); Drawer.open("samples", id);
+}
+function viewSmp(id, o) {
+  const kids = childIndex(); const used = fzUsedIn(o, kids);
+  const exps = Object.entries(S.exp).sort((a, b) => (b[1].startDate || "").localeCompare(a[1].startDate || ""));
+  return `<input type="text" class="title-in" id="z-label" data-f="label" value="${esc(o.label)}" placeholder="${tr("f.labelPh")}" aria-label="${tr("f.label")}">
+  <div class="grid2">
+    <label class="f"><span>${tr("f.material")}</span><input type="text" id="z-mat" data-f="material" list="matList" value="${esc(o.material)}"><datalist id="matList">${tr("f.materials").split("|").map(m => `<option value="${esc(m)}"></option>`).join("")}</datalist></label>
+    <label class="f"><span>${tr("f.status")}</span><select id="z-st" data-f="status">${Object.entries(FZ_ST).map(([k, n]) => `<option value="${k}" ${o.status === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("f.lab")}</span><select id="z-site" data-f="site">${siteOptions(o.site, true)}</select></label>
+    <label class="f"><span>${tr("f.stored")}</span><input type="date" id="z-date" data-f="stored" value="${esc(o.stored)}"></label>
+    <label class="f"><span>${tr("f.fzLoc")}</span>${fld("z-loc", "location", o.location, 'placeholder="' + esc(tr("f.fzLocPh")) + '"')}</label>
+    <label class="f"><span>${tr("f.tubes")}</span>${fld("z-tubes", "tubes", o.tubes, 'inputmode="numeric" data-num="1"')}</label>
+  </div>
+  <label class="f"><span>${tr("f.fromExp")}</span><select id="z-exp" data-f="experimentId" data-rerender="1"><option value="">—</option>${exps.map(([k, x]) => `<option value="${esc(k)}" ${o.experimentId === k ? "selected" : ""}>${fmtDate(x.startDate, true)} · ${esc(x.title)}</option>`).join("")}</select></label>
+  ${o.experimentId && S.exp[o.experimentId] ? `<div class="hint"><a class="lnk" data-open-exp="${esc(o.experimentId)}">${esc(S.exp[o.experimentId].title)}</a>${used.length ? ` · ${tr("fz.autoUsed")} ${used.map(k => `<a class="lnk" data-open-exp="${esc(k)}">${esc(S.exp[k].title)}</a>`).join(", ")}` : ""}</div>` : ""}
+  <label class="f"><span>${tr("f.stageNotes")}</span><textarea id="z-notes" data-f="notes" rows="2">${esc(o.notes)}</textarea></label>
+  <div class="sec-h"><h3>${tr("th.done")}</h3></div>
+  <div class="log">${(o.log || []).slice().reverse().map(l => `<div class="log-item"><time>${esc(l.date ? fmtDate(l.date, true) : new Date(l.ts).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</time><div>${esc(l.text).replace(/\n/g, "<br>")}</div><button class="icon-btn" type="button" data-act="del-log" data-ts="${l.ts}" aria-label="${tr("e.delNote")}">✕</button></div>`).join("") || `<div class="hint">${tr("fz.logHint")}</div>`}</div>
+  <div class="row-actions" style="flex-wrap:nowrap"><input type="date" id="logDate" value="${today()}" style="width:auto" aria-label="${tr("f.date")}"><input type="text" id="logText" placeholder="${tr("fz.logPh")}" aria-label="${tr("fz.logPh")}"><button class="btn" type="button" data-act="add-log">${tr("e.logAdd")}</button></div>`;
+}
+
 function viewReagents() {
   const q = UI.q.trim().toLowerCase();
   const rows = Object.entries(S.rea).map(([id, r]) => ({ id, r, L: ledger(id) }))
@@ -1029,6 +1146,7 @@ const Drawer = {
     if (!o) { if (this.coll) { body.innerHTML = `<div class="empty">${tr("dr.deleted")}</div>`; $("#drActions").innerHTML = ""; } return; }
     const ae = document.activeElement; const fid = ae && body.contains(ae) ? ae.id : null;
     if (this.coll === "experiments") { $("#drTitle").textContent = tr("dr.exp"); body.innerHTML = viewExp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm" type="button" data-act="next-step" data-id="${esc(this.id)}">${tr("ch.next")}</button><button class="btn sm" type="button" data-act="dup-exp">${tr("dup")}</button><button class="btn sm danger" type="button" data-act="del-exp">${tr("del")}</button>`; }
+    else if (this.coll === "samples") { $("#drTitle").textContent = tr("dr.fz"); body.innerHTML = viewSmp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm danger" type="button" data-act="del-smp">${tr("del")}</button>`; }
     else { $("#drTitle").textContent = KINDS[o.kind] || tr("kind.reagent"); body.innerHTML = viewRea(this.id, o); $("#drActions").innerHTML = `<button class="btn sm danger" type="button" data-act="del-rea">${tr("del")}</button>`; }
     if (S.readOnly) { $$("input,select,textarea,button[data-act]", body).forEach(el => el.disabled = true); $$("#drActions button").forEach(b => b.disabled = true); }
     if (keepScroll) body.scrollTop = top;
@@ -1075,6 +1193,7 @@ function viewExp(id, e) {
     <label class="f"><span>${tr("f.samplesAt")}</span><select id="e-loc" data-f="samplesAt"><option value="">${lastSite ? tr("sa.auto", SITES[lastSite]) : tr("sa.autoNone")}</option>${Object.entries(SITES).map(([k, n]) => `<option value="${k}" ${e.samplesAt === k ? "selected" : ""}>${n}</option>`).join("")}<option value="used" ${e.samplesAt === "used" ? "selected" : ""}>${tr("sa.used")}</option></select></label>
     <label class="f"><span>${tr("f.file")}</span>${fld("e-file", "sourceFile", e.sourceFile, 'placeholder="' + tr("f.filePh") + '"')}</label>
   </div>
+  <div class="fzbox"><span class="lbl">${tr("tabs.freezer")}</span>${Object.entries(S.smp).filter(([, z]) => z.experimentId === id).map(([zid, z]) => `<a class="pchip lnk" data-open-smp="${esc(zid)}">${esc(z.label || tr("untitled"))} · ${FZ_ST[z.status] || ""}</a>`).join("") || `<span class="hint">${tr("fz.none")}</span>`}${S.readOnly ? "" : `<button class="btn sm" type="button" data-act="fz-add" data-id="${esc(id)}">${tr("fz.addFromExp")}</button>`}</div>
   ${children.length ? `<div class="hint">${tr("e.usedIn")} ${children.map(([k, x]) => `<a class="lnk" data-open-exp="${esc(k)}">${esc(x.title)}</a>`).join(", ")}.</div>` : ""}
   <label class="f"><span>${tr("f.notes")}</span><textarea id="e-notes" data-f="notes" rows="3">${esc(e.notes)}</textarea></label>
   <div class="sec-h"><h3>${tr("e.stagesH")} · ${(e.stages || []).length}</h3><button class="btn sm" type="button" data-act="add-stage">${tr("e.addStage")}</button></div>`;
@@ -1279,7 +1398,7 @@ function recipeUsageModal(i) {
 
 /* ============================== export / import ============================== */
 async function doExport() {
-  const data = JSON.stringify({ app: "labjournal", version: 1, exportedAt: new Date().toISOString(), experiments: S.exp, reagents: S.rea }, null, 1);
+  const data = JSON.stringify({ app: "labjournal", version: 1, exportedAt: new Date().toISOString(), experiments: S.exp, reagents: S.rea, samples: S.smp }, null, 1);
   const fn = `lab-journal-${today()}.json`;
   if (downloads) { try { await downloads.save({ filename: fn, data }); return; } catch (e) { if (e && e.code === "declined") return; } }
   if (S.mode === "local" && saveDownload(fn, data)) return;
@@ -1293,6 +1412,7 @@ function doImport(file) {
     confirmBox(tr("import"), esc(tr("imp.text", ne, nr)), tr("import"), async () => {
       for (const [id, o] of Object.entries(d.experiments || {})) { S.exp[id] = o; save("experiments", id, 50); }
       for (const [id, o] of Object.entries(d.reagents || {})) { S.rea[id] = o; save("reagents", id, 50); }
+      for (const [id, o] of Object.entries(d.samples || {})) { S.smp[id] = o; save("samples", id, 50); }
       render(); toast(tr("imp.done"));
     });
   };
@@ -1306,6 +1426,7 @@ document.addEventListener("click", (ev) => {
   if (m) { if (m.dataset.m === "cancel") Modal.close(); else if (Modal.onOk && Modal.onOk() !== false) Modal.close(); return; }
   if (t.id === "modal") { Modal.close(); return; }
   const oe = t.closest("[data-open-exp]"); if (oe) { ev.preventDefault(); Drawer.open("experiments", oe.dataset.openExp); return; }
+  const oz = t.closest("[data-open-smp]"); if (oz) { ev.preventDefault(); Drawer.open("samples", oz.dataset.openSmp); return; }
   const or = t.closest("[data-open-rea]"); if (or) { ev.preventDefault(); Drawer.open("reagents", or.dataset.openRea); return; }
   if (t.id === "scrim") { Drawer.close(); return; }
   const sb = t.closest(".seg button"); if (sb) { UI.site = sb.dataset.site; lsSet("labjournal.site", UI.site); render(); return; }
@@ -1316,6 +1437,8 @@ document.addEventListener("click", (ev) => {
     case "close": Drawer.close(); break;
     case "new-exp": newExperiment(); break;
     case "next-step": newExperiment(a.dataset.id); break;
+    case "fz-add": newSample(a.dataset.id); break;
+    case "del-smp": confirmBox(tr("fz.delTitle"), tr("fz.delText", esc(o.label || "")), tr("del"), () => { const id = Drawer.id; remove("samples", id); Drawer.close(); }); break;
     case "del-parent": o.parentIds = parentsOf(o).filter(x => x !== a.dataset.pid); delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); break;
     case "new-rea": newReagent(); break;
     case "export": doExport(); break;
@@ -1333,7 +1456,7 @@ document.addEventListener("click", (ev) => {
     case "add-usage": { const s = o.stages[i]; (s.usages = s.usages || []).push({ reagentId: "", amount: "", unit: "mL", note: "", ts: Date.now() }); save("experiments", Drawer.id); Drawer.render(); const el = $(`#u-${s.id}-${s.usages.length - 1}-r`); if (el) el.focus(); break; }
     case "recipe-usage": recipeUsageModal(i); break;
     case "del-usage": o.stages[i].usages.splice(j, 1); save("experiments", Drawer.id); Drawer.render(); render(); break;
-    case "add-log": { const tx = $("#logText").value.trim(); if (!tx) break; (o.log = o.log || []).push({ ts: Date.now(), text: tx }); save("experiments", Drawer.id, 0); Drawer.render(); break; }
+    case "add-log": { const tx = $("#logText").value.trim(); if (!tx) break; (o.log = o.log || []).push(Drawer.coll === "samples" ? { ts: Date.now(), date: ($("#logDate") && $("#logDate").value) || today(), text: tx } : { ts: Date.now(), text: tx }); save("experiments", Drawer.id, 0); Drawer.render(); break; }
     case "del-log": o.log = (o.log || []).filter(l => String(l.ts) !== a.dataset.ts); save("experiments", Drawer.id); Drawer.render(); break;
     case "dup-exp": {
       const id = uid("e_"); const c = clone(o); const d = today();
@@ -1361,6 +1484,7 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key === "Enter" && ev.target.id === "logText") { ev.preventDefault(); $('[data-act="add-log"]').click(); }
   if (ev.key === "Enter" && $("#modal").classList.contains("open") && ev.target.tagName === "INPUT") { ev.preventDefault(); const ok = $('#modalBox [data-m="ok"]'); if (ok) ok.click(); }
   if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches("tr[data-open-rea]")) { ev.preventDefault(); Drawer.open("reagents", ev.target.dataset.openRea); }
+  if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches("tr[data-open-smp]")) { ev.preventDefault(); Drawer.open("samples", ev.target.dataset.openSmp); }
 });
 function onField(ev, final) {
   const el = ev.target; if (!el.dataset || !el.dataset.f || !$("#drBody").contains(el)) return;
@@ -1387,6 +1511,7 @@ document.addEventListener("input", (ev) => {
 document.addEventListener("change", (ev) => {
   const id = ev.target.id;
   if (id === "fType") { UI.type = ev.target.value; render(); return; }
+  if (id === "fFzUsed") { UI.fzShowUsed = ev.target.checked; render(); return; }
   if (id === "fWait") { UI.onlyWaiting = ev.target.checked; render(); return; }
   if (id === "e-parent-add") { const o = Drawer.doc(); const v = ev.target.value; if (o && v && S.exp[v]) { o.parentIds = [...parentsOf(o).filter(x => x !== v), v]; delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); } return; }
   if (id === "fStatus") { UI.status = ev.target.value; render(); return; }
