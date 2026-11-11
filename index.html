@@ -122,6 +122,28 @@ section.block{display:grid;gap:10px}
 .banner{padding:10px 14px;border-radius:var(--r);background:var(--warn-soft);color:var(--warn);font-size:14px}
 .filebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:8px 8px 8px 14px;border-radius:var(--r);background:var(--accent-soft);font-size:14px}
 .filebar.warn{background:var(--warn-soft)}
+.chain{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:4px}
+.kids{margin-left:22px;padding-left:12px;border-left:2px solid var(--line);display:grid;gap:4px}
+.node{display:flex;gap:6px;align-items:center;border-radius:8px}
+.node.waiting{background:var(--warn-soft)}
+.waitlist .node{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);padding-right:6px}
+.node-main{flex:1;min-width:0;display:grid;grid-template-columns:112px 1fr;gap:2px 12px;text-align:left;background:none;border:0;padding:7px 8px;border-radius:8px;cursor:pointer}
+.node-main:hover{background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.node-main .d{font-family:var(--font-mono);font-size:12px;color:var(--muted);padding-top:2px;line-height:1.4}
+.node-main .d b{color:var(--ink);font-size:13px;white-space:nowrap}
+.node-t{display:block;font-weight:600}
+.node-main .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;align-items:center}
+.node-main .sub{display:block;color:var(--muted);font-size:13px;margin-top:3px;overflow-wrap:anywhere}
+.path{display:inline-flex;gap:3px;align-items:center;color:var(--muted);font-size:12px}
+.move{font-size:12px;font-weight:600;color:var(--warn);padding:0 8px}
+.tag.wait{background:var(--warn);color:#fff;border-color:transparent}
+.tag.loc{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.btn.next{flex:none}
+.parents{display:flex;flex-wrap:wrap;gap:6px;align-items:center;grid-column:1/-1}
+.parents .lbl{width:100%;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.pchip{display:inline-flex;align-items:center;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 2px 2px 10px;font-size:13px}
+.parents select{width:auto;max-width:100%}
+@media (max-width:640px){.node{flex-wrap:wrap}.node-main{grid-template-columns:1fr}.kids{margin-left:8px;padding-left:8px}}
 select.lang{width:auto;padding:5px 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* reagents table */
@@ -211,6 +233,7 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
     <div class="brand"><i aria-hidden="true"></i><span data-i-key="appName"></span></div>
     <nav class="tabs" data-i-aria="nav.aria">
       <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
+      <a href="#chains" data-tab="chains" data-i-key="tabs.chains"></a>
       <a href="#reagents" data-tab="reagents" data-i-key="tabs.reagents"></a>
     </nav>
     <div class="spacer"></div>
@@ -520,6 +543,27 @@ const I18N = {
   "dr.text": ["«{0}» исчезнет из списка.", "«{0}» зникне зі списку.", "„{0}“ dings iš sąrašo.", "“{0}” will disappear from the list."],
   "dr.used": ["В экспериментах есть {0} записей расхода, они останутся с пометкой «удалён».", "В експериментах є {0} записів витрати, вони залишаться з позначкою «видалено».", "Eksperimentuose yra {0} sunaudojimo įrašų, jie liks pažymėti „ištrintas“.", "Experiments have {0} usage entries for it; they stay, marked “deleted”."],
   "db.title": ["Удалить запись партии?", "Видалити запис партії?", "Ištrinti partijos įrašą?", "Delete this batch entry?"],
+  "tabs.chains": ["Цепочки образцов", "Ланцюжки зразків", "Mėginių grandinės", "Sample chains"],
+  "ch.waitingH": ["Образцы ждут работы", "Зразки чекають на роботу", "Mėginiai laukia darbo", "Samples waiting"],
+  "ch.waitingHint": ["Эти эксперименты закончены, но их образцы ещё нигде дальше не использованы.", "Ці експерименти завершено, але їхні зразки ще ніде далі не використано.", "Šie eksperimentai baigti, bet jų mėginiai dar niekur toliau nepanaudoti.", "These experiments are finished, but their samples haven't been used in any later experiment yet."],
+  "ch.allUsed": ["Все образцы уже в работе или израсходованы.", "Усі зразки вже в роботі або витрачені.", "Visi mėginiai jau naudojami arba sunaudoti.", "All samples are in use or used up."],
+  "ch.chainsH": ["Цепочки", "Ланцюжки", "Grandinės", "Chains"],
+  "stat.waiting": ["наборов образцов ждут работы", "наборів зразків чекають на роботу", "mėginių rinkinių laukia darbo", "sample sets waiting"],
+  "stat.chains": ["цепочек экспериментов", "ланцюжків експериментів", "eksperimentų grandinių", "experiment chains"],
+  "stat.inWork": ["цепочек в работе", "ланцюжків у роботі", "grandinių vykdoma", "chains in progress"],
+  "ch.waitBadge": ["ждут работы", "чекають на роботу", "laukia darbo", "waiting"],
+  "ch.moved": ["перевезены: {0} → {1}", "перевезено: {0} → {1}", "pervežti: {0} → {1}", "moved: {0} → {1}"],
+  "ch.next": ["+ Следующий шаг", "+ Наступний крок", "+ Kitas žingsnis", "+ Next step"],
+  "ch.onlyWaiting": ["Только где образцы ждут работы", "Лише де зразки чекають на роботу", "Tik kur mėginiai laukia darbo", "Only chains with waiting samples"],
+  "ch.hint": ["Эксперименты связываются полем «Образцы взяты из эксперимента» или кнопкой «+ Следующий шаг».", "Експерименти пов'язуються полем «Зразки взято з експерименту» або кнопкою «+ Наступний крок».", "Eksperimentai susiejami lauku „Mėginiai paimti iš eksperimento“ arba mygtuku „+ Kitas žingsnis“.", "Experiments are linked with the “Samples come from experiment” field or the “+ Next step” button."],
+  "f.samplesAt": ["Где образцы сейчас", "Де зразки зараз", "Kur mėginiai dabar", "Where the samples are now"],
+  "sa.auto": ["— по последнему этапу ({0})", "— за останнім етапом ({0})", "— pagal paskutinį etapą ({0})", "— from the last step ({0})"],
+  "sa.autoNone": ["— не указано", "— не вказано", "— nenurodyta", "— not set"],
+  "sa.used": ["Израсходованы", "Витрачено", "Sunaudoti", "Used up"],
+  "sa.chip": ["образцы: {0}", "зразки: {0}", "mėginiai: {0}", "samples: {0}"],
+  "par.add": ["+ добавить источник образцов", "+ додати джерело зразків", "+ pridėti mėginių šaltinį", "+ add a sample source"],
+  "par.remove": ["Убрать связь", "Прибрати зв'язок", "Pašalinti ryšį", "Remove link"],
+  "par.none": ["Это начало цепочки.", "Це початок ланцюжка.", "Tai grandinės pradžia.", "This is the start of a chain."],
   "db.text": ["Остаток будет пересчитан.", "Залишок буде перераховано.", "Likutis bus perskaičiuotas.", "The balance will be recalculated."],
 };
 function pickLang() {
@@ -784,7 +828,7 @@ function isLow(r, bal) { return r.kind !== "mix" && bal != null && ((r.low != nu
 function lastUse(L) { for (let i = L.events.length - 1; i >= 0; i--) if (L.events[i].kind === "use") return L.events[i]; return null; }
 
 /* ============================== UI state & render ============================== */
-const UI = { tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
+const UI = { onlyWaiting: false, tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
 
 function applyStaticAll() {
   document.documentElement.lang = LANG;
@@ -802,7 +846,7 @@ function setLang(l) {
   render(); if (Drawer.coll) Drawer.render();
 }
 function render() {
-  const h = (location.hash || "#journal").slice(1); UI.tab = h === "reagents" ? "reagents" : "journal";
+  const h = (location.hash || "#journal").slice(1); UI.tab = h === "reagents" || h === "chains" ? h : "journal";
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === UI.tab ? "page" : "false"));
   $$(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.site === UI.site)));
   const main = $("#main");
@@ -812,7 +856,7 @@ function render() {
   main.innerHTML = (S.readOnly ? `<div class="banner">${tr("banner.readonly")}</div>` : "")
     + fileBanner()
     + (S.slow ? `<div class="banner">${tr("banner.slow")}</div>` : "")
-    + (UI.tab === "journal" ? viewJournal() : viewReagents());
+    + (UI.tab === "journal" ? viewJournal() : UI.tab === "chains" ? viewChains() : viewReagents());
   if (keepFocus) { const el = document.getElementById(keepFocus); if (el) { el.focus(); try { el.setSelectionRange(sel[0], sel[1]); } catch {} } }
 }
 let renderT; function renderSoon() { clearTimeout(renderT); renderT = setTimeout(render, 150); }
@@ -873,6 +917,75 @@ function cardExp({ id, e, sites }) {
   </button>`;
 }
 
+/* ---------- sample chains ---------- */
+const PRODUCES = new Set(["crosslinking", "fractionation", "tca", "phenol", "transplant"]);
+const NEXT_TYPE = { crosslinking: "fractionation", fractionation: "western", tca: "western", phenol: "western", transplant: "crosslinking" };
+function parentsOf(e) { const ps = Array.isArray(e.parentIds) ? e.parentIds : (e.parentId ? [e.parentId] : []); return ps.filter(p => S.exp[p]); }
+function childIndex() {
+  const m = {};
+  for (const [id, e] of Object.entries(S.exp)) for (const p of parentsOf(e)) (m[p] = m[p] || []).push(id);
+  for (const k in m) m[k].sort((a, b) => (S.exp[a].startDate || "").localeCompare(S.exp[b].startDate || ""));
+  return m;
+}
+function sitePath(e) { const q = []; for (const s of e.stages || []) if (s.site && q[q.length - 1] !== s.site) q.push(s.site); return q; }
+function samplesLoc(e) { if (e.samplesAt) return e.samplesAt; const q = sitePath(e); return q[q.length - 1] || ""; }
+function isWaiting(id, e, kids) { return PRODUCES.has(e.type) && e.status === "done" && !(kids[id] || []).length && e.samplesAt !== "used"; }
+function locLabel(l) { return l === "used" ? tr("sa.used") : SITES[l] || ""; }
+
+function nodeHTML(id, kids) {
+  const e = S.exp[id]; const path = sitePath(e); const wait = isWaiting(id, e, kids); const loc = samplesLoc(e);
+  const d2 = e.endDate && e.endDate !== e.startDate ? e.endDate : "";
+  return `<div class="node ${wait ? "waiting" : ""}">
+    <button type="button" class="node-main" data-open-exp="${esc(id)}">
+      <span class="d"><b>${fmtDate(e.startDate)}</b><br>${d2 ? "→ " + fmtDate(d2) : esc((e.startDate || "").slice(0, 4))}</span>
+      <span><span class="node-t">${esc(e.title || tr("untitled"))}</span>
+        <span class="meta"><span class="tag">${esc(TYPES[e.type]?.name || "")}</span>${path.length ? `<span class="path">${path.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("→")}</span>` : ""}<span class="tag st-${esc(e.status)}">${STATUS[e.status] || ""}</span>${wait ? `<span class="tag wait">${tr("ch.waitBadge")}</span>` : ""}${PRODUCES.has(e.type) && loc ? `<span class="tag ${loc === "used" ? "" : "loc"}">${tr("sa.chip", locLabel(loc))}</span>` : ""}</span>
+        ${e.samples ? `<span class="sub">${esc(e.samples)}</span>` : ""}</span>
+    </button>
+    ${S.readOnly ? "" : `<button type="button" class="btn sm ghost next" data-act="next-step" data-id="${esc(id)}">${tr("ch.next")}</button>`}
+  </div>`;
+}
+function treeHTML(id, kids, seen) {
+  if (seen.has(id)) return ""; seen.add(id);
+  const e = S.exp[id]; const out = (kids[id] || []).map(cid => {
+    const c = S.exp[cid]; const from = sitePath(e).slice(-1)[0] || ""; const to = sitePath(c)[0] || "";
+    const move = from && to && from !== to ? `<div class="move">↳ ${tr("ch.moved", SITES[from], SITES[to])}</div>` : "";
+    return move + treeHTML(cid, kids, seen);
+  }).join("");
+  return nodeHTML(id, kids) + (out ? `<div class="kids">${out}</div>` : "");
+}
+function chainIds(id, kids, acc = new Set()) { if (acc.has(id)) return acc; acc.add(id); for (const c of kids[id] || []) chainIds(c, kids, acc); return acc; }
+function viewChains() {
+  const kids = childIndex(); const q = UI.q.trim().toLowerCase();
+  const roots = Object.keys(S.exp).filter(id => !parentsOf(S.exp[id]).length);
+  // a cycle (A→B→A) has no root: start it from its earliest experiment
+  const covered = new Set(); roots.forEach(r => chainIds(r, kids, covered));
+  Object.keys(S.exp).filter(id => !covered.has(id)).sort((a, b) => (S.exp[a].startDate || "").localeCompare(S.exp[b].startDate || "")).forEach(id => { if (!covered.has(id)) { roots.push(id); chainIds(id, kids, covered); } });
+  const chains = roots.map(r => { const ids = [...chainIds(r, kids)]; const es = ids.map(i => S.exp[i]);
+    return { r, ids, last: es.map(e => e.endDate || e.startDate || "").sort().pop() || "", sites: [...new Set(es.flatMap(sitePath))], waiting: ids.filter(i => isWaiting(i, S.exp[i], kids)), active: es.some(e => e.status !== "done") }; })
+    .filter(c => UI.site === "all" || c.sites.includes(UI.site))
+    .filter(c => !q || c.ids.some(i => JSON.stringify([S.exp[i].title, S.exp[i].samples, S.exp[i].notes]).toLowerCase().includes(q)))
+    .sort((a, b) => b.last.localeCompare(a.last));
+  const waitingAll = chains.flatMap(c => c.waiting).sort((a, b) => (S.exp[a].startDate || "").localeCompare(S.exp[b].startDate || ""));
+  let html = `<div class="toolbar">
+    <input type="search" id="q" placeholder="${tr("j.search")}" value="${esc(UI.q)}" aria-label="${tr("search.aria")}">
+    <label class="check"><input type="checkbox" id="fWait" ${UI.onlyWaiting ? "checked" : ""}> ${tr("ch.onlyWaiting")}</label>
+  </div>
+  <div class="stats">
+    <div class="stat ${waitingAll.length ? "warn" : ""}"><b>${waitingAll.length}</b><span>${tr("stat.waiting")}</span></div>
+    <div class="stat"><b>${chains.filter(c => c.active).length}</b><span>${tr("stat.inWork")}</span></div>
+    <div class="stat"><b>${chains.length}</b><span>${tr("stat.chains")}</span></div>
+  </div>`;
+  if (!Object.keys(S.exp).length) return html + `<div class="empty">${tr("ch.empty")}</div>`;
+  html += `<section class="block"><div class="block-h">${tr("ch.waitingH")} <span class="n">${waitingAll.length}</span></div>
+    ${waitingAll.length ? `<p class="hint">${tr("ch.waitingHint")}</p><div class="cards waitlist">${waitingAll.map(id => nodeHTML(id, kids)).join("")}</div>` : `<div class="empty">${tr("ch.allUsed")}</div>`}</section>`;
+  const shown = UI.onlyWaiting ? chains.filter(c => c.waiting.length) : chains;
+  html += `<section class="block"><div class="block-h">${tr("ch.chainsH")} <span class="n">${shown.length}</span></div>
+    ${shown.length ? shown.map(c => `<div class="chain">${treeHTML(c.r, kids, new Set())}</div>`).join("") : `<div class="empty">${tr("j.nothing")}</div>`}
+    <p class="hint">${tr("ch.hint")}</p></section>`;
+  return html;
+}
+
 function viewReagents() {
   const q = UI.q.trim().toLowerCase();
   const rows = Object.entries(S.rea).map(([id, r]) => ({ id, r, L: ledger(id) }))
@@ -912,7 +1025,7 @@ const Drawer = {
     const body = $("#drBody"); const top = body.scrollTop; const o = this.doc();
     if (!o) { if (this.coll) { body.innerHTML = `<div class="empty">${tr("dr.deleted")}</div>`; $("#drActions").innerHTML = ""; } return; }
     const ae = document.activeElement; const fid = ae && body.contains(ae) ? ae.id : null;
-    if (this.coll === "experiments") { $("#drTitle").textContent = tr("dr.exp"); body.innerHTML = viewExp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm" type="button" data-act="dup-exp">${tr("dup")}</button><button class="btn sm danger" type="button" data-act="del-exp">${tr("del")}</button>`; }
+    if (this.coll === "experiments") { $("#drTitle").textContent = tr("dr.exp"); body.innerHTML = viewExp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm" type="button" data-act="next-step" data-id="${esc(this.id)}">${tr("ch.next")}</button><button class="btn sm" type="button" data-act="dup-exp">${tr("dup")}</button><button class="btn sm danger" type="button" data-act="del-exp">${tr("del")}</button>`; }
     else { $("#drTitle").textContent = KINDS[o.kind] || tr("kind.reagent"); body.innerHTML = viewRea(this.id, o); $("#drActions").innerHTML = `<button class="btn sm danger" type="button" data-act="del-rea">${tr("del")}</button>`; }
     if (S.readOnly) { $$("input,select,textarea,button[data-act]", body).forEach(el => el.disabled = true); $$("#drActions button").forEach(b => b.disabled = true); }
     if (keepScroll) body.scrollTop = top;
@@ -941,8 +1054,9 @@ function fld(id, path, val, attrs = "") { return `<input type="text" id="${id}" 
 function viewExp(id, e) {
   const t = TYPES[e.type];
   const others = Object.entries(S.exp).filter(([k]) => k !== id).sort((a, b) => (b[1].startDate || "").localeCompare(a[1].startDate || ""));
-  const parent = e.parentId && S.exp[e.parentId];
-  const children = Object.entries(S.exp).filter(([, x]) => x.parentId === id);
+  const parents = parentsOf(e);
+  const children = (childIndex()[id] || []).map(k => [k, S.exp[k]]);
+  const lastSite = sitePath(e).slice(-1)[0] || "";
   let h = `<input type="text" class="title-in" id="e-title" data-f="title" value="${esc(e.title)}" placeholder="${tr("e.titlePh")}" aria-label="${tr("th.name")}">
   <div class="grid2">
     <label class="f"><span>${tr("f.type")}</span><select id="e-type" data-f="type">${Object.entries(TYPES).map(([k, x]) => `<option value="${k}" ${e.type === k ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
@@ -952,10 +1066,13 @@ function viewExp(id, e) {
   </div>
   <label class="f"><span>${tr("f.samples")}</span><textarea id="e-samples" data-f="samples" rows="2" placeholder="${tr("f.samplesPh")}">${esc(e.samples)}</textarea></label>
   <div class="grid2">
-    <label class="f"><span>${tr("f.parent")}</span><select id="e-parent" data-f="parentId"><option value="">—</option>${others.map(([k, x]) => `<option value="${esc(k)}" ${e.parentId === k ? "selected" : ""}>${fmtDate(x.startDate, true)} · ${esc(x.title)}</option>`).join("")}</select></label>
+    <div class="f parents"><span class="lbl">${tr("f.parent")}</span>
+      ${parents.map(pid => `<span class="pchip"><a class="lnk" data-open-exp="${esc(pid)}">${fmtDate(S.exp[pid].startDate, true)} · ${esc(S.exp[pid].title)}</a><button class="icon-btn" type="button" data-act="del-parent" data-pid="${esc(pid)}" aria-label="${tr("par.remove")}">✕</button></span>`).join("") || `<span class="hint">${tr("par.none")}</span>`}
+      <select id="e-parent-add" aria-label="${tr("par.add")}"><option value="">${tr("par.add")}</option>${others.filter(([k]) => !parents.includes(k)).map(([k, x]) => `<option value="${esc(k)}">${fmtDate(x.startDate, true)} · ${esc(x.title)}</option>`).join("")}</select></div>
+    <label class="f"><span>${tr("f.samplesAt")}</span><select id="e-loc" data-f="samplesAt"><option value="">${lastSite ? tr("sa.auto", SITES[lastSite]) : tr("sa.autoNone")}</option>${Object.entries(SITES).map(([k, n]) => `<option value="${k}" ${e.samplesAt === k ? "selected" : ""}>${n}</option>`).join("")}<option value="used" ${e.samplesAt === "used" ? "selected" : ""}>${tr("sa.used")}</option></select></label>
     <label class="f"><span>${tr("f.file")}</span>${fld("e-file", "sourceFile", e.sourceFile, 'placeholder="' + tr("f.filePh") + '"')}</label>
   </div>
-  ${parent || children.length ? `<div class="hint">${parent ? `${tr("e.from")} <a class="lnk" data-open-exp="${esc(e.parentId)}">${esc(parent.title)}</a>. ` : ""}${children.length ? `${tr("e.usedIn")} ${children.map(([k, x]) => `<a class="lnk" data-open-exp="${esc(k)}">${esc(x.title)}</a>`).join(", ")}.` : ""}</div>` : ""}
+  ${children.length ? `<div class="hint">${tr("e.usedIn")} ${children.map(([k, x]) => `<a class="lnk" data-open-exp="${esc(k)}">${esc(x.title)}</a>`).join(", ")}.</div>` : ""}
   <label class="f"><span>${tr("f.notes")}</span><textarea id="e-notes" data-f="notes" rows="3">${esc(e.notes)}</textarea></label>
   <div class="sec-h"><h3>${tr("e.stagesH")} · ${(e.stages || []).length}</h3><button class="btn sm" type="button" data-act="add-stage">${tr("e.addStage")}</button></div>`;
   (e.stages || []).forEach((s, i) => { h += viewStage(id, e, s, i); });
@@ -1068,9 +1185,12 @@ function confirmBox(title, text, okLabel, fn) {
   Modal.open(`<h2>${esc(title)}</h2><p>${text}</p><div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${esc(okLabel)}</button></div>`, () => { fn(); return true; });
 }
 
-function newExperiment() {
-  const tOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${esc(t.name)}</option>`).join("");
+function newExperiment(parentId) {
+  const par = parentId && S.exp[parentId];
+  const defType = par ? (NEXT_TYPE[par.type] || par.type) : "crosslinking";
+  const tOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${k === defType ? "selected" : ""}>${esc(t.name)}</option>`).join("");
   Modal.open(`<h2>${tr("ne.title")}</h2>
+    ${par ? `<p class="hint">${tr("e.from")} <b>${esc(par.title)}</b></p>` : ""}
     <label class="f"><span>${tr("f.type")}</span><select id="mType">${tOpts}</select></label>
     <label class="f"><span>${tr("th.name")}</span><input type="text" id="mTitle" placeholder="${tr("ne.titlePh")}"></label>
     <div class="grid2"><label class="f"><span>${tr("ne.date")}</span><input type="date" id="mDate" value="${today()}"></label>
@@ -1080,11 +1200,12 @@ function newExperiment() {
     const type = $("#mType").value, t = TYPES[type], date = $("#mDate").value || today(), site = $("#mSite").value;
     const id = uid("e_");
     const stages = $("#mPreset").checked ? t.stages.map((p) => ({ id: uid("s"), title: tr(p.t), date: p.next ? "" : date, site: p.site || site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })) : [];
-    S.exp[id] = { title: $("#mTitle").value.trim() || `${t.name} ${fmtDate(date)}`, type, status: date > today() ? "planned" : "active", startDate: date, endDate: "", samples: "", notes: "", stages, sourceFile: "", parentId: "", log: [], createdAt: Date.now(), updatedAt: Date.now() };
+    S.exp[id] = { title: $("#mTitle").value.trim() || `${t.name} ${fmtDate(date)}`, type, status: date > today() ? "planned" : "active", startDate: date, endDate: "", samples: "", notes: "", stages, sourceFile: "", parentIds: par ? [parentId] : [], samplesAt: "", log: [], createdAt: Date.now(), updatedAt: Date.now() };
+    if (par && par.samples) S.exp[id].samples = par.samples;
     save("experiments", id, 0); render(); Drawer.open("experiments", id); return true;
   });
   $("#mType").addEventListener("change", () => { const s = TYPES[$("#mType").value].site; $("#mSite").value = s; });
-  $("#mSite").value = UI.site !== "all" ? UI.site : TYPES.crosslinking.site;
+  $("#mSite").value = par ? TYPES[defType].site : UI.site !== "all" ? UI.site : TYPES.crosslinking.site;
 }
 function newReagent() {
   const id = uid("r_");
@@ -1191,6 +1312,8 @@ document.addEventListener("click", (ev) => {
   switch (act) {
     case "close": Drawer.close(); break;
     case "new-exp": newExperiment(); break;
+    case "next-step": newExperiment(a.dataset.id); break;
+    case "del-parent": o.parentIds = parentsOf(o).filter(x => x !== a.dataset.pid); delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); break;
     case "new-rea": newReagent(); break;
     case "export": doExport(); break;
     case "import": $("#importFile").click(); break;
@@ -1212,7 +1335,7 @@ document.addEventListener("click", (ev) => {
     case "dup-exp": {
       const id = uid("e_"); const c = clone(o); const d = today();
       c.title = stripTitleDate(c.title) + " " + fmtDate(d);
-      c.startDate = d; c.endDate = ""; c.status = "active"; c.log = []; c.parentId = ""; c.sourceFile = ""; c.createdAt = c.updatedAt = Date.now();
+      c.startDate = d; c.endDate = ""; c.status = "active"; c.log = []; c.parentIds = parentsOf(o); delete c.parentId; c.samplesAt = ""; c.sourceFile = ""; c.createdAt = c.updatedAt = Date.now();
       c.stages = c.stages.map(s => ({ ...s, id: uid("s"), date: d, done: false, notes: "", usages: (s.usages || []).map(u => ({ ...u, ts: Date.now() })) }));
       S.exp[id] = c; save("experiments", id, 0); render(); Drawer.open("experiments", id); toast(tr("dup.toast")); break;
     }
@@ -1261,6 +1384,8 @@ document.addEventListener("input", (ev) => {
 document.addEventListener("change", (ev) => {
   const id = ev.target.id;
   if (id === "fType") { UI.type = ev.target.value; render(); return; }
+  if (id === "fWait") { UI.onlyWaiting = ev.target.checked; render(); return; }
+  if (id === "e-parent-add") { const o = Drawer.doc(); const v = ev.target.value; if (o && v && S.exp[v]) { o.parentIds = [...parentsOf(o).filter(x => x !== v), v]; delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); } return; }
   if (id === "fStatus") { UI.status = ev.target.value; render(); return; }
   if (id === "fKind") { UI.kind = ev.target.value; render(); return; }
   if (id === "fLow") { UI.lowOnly = ev.target.checked; render(); return; }
