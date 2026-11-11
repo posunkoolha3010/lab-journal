@@ -281,8 +281,8 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
   <div class="top-in">
     <div class="brand"><span class="mark" aria-hidden="true"><svg width="26" height="26" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1f6c66"/><clipPath id="flaskclip"><path d="M27 15h10v13.5l12.3 19.6c1.5 2.4-.2 5.4-3 5.4H17.7c-2.8 0-4.5-3-3-5.4L27 28.5z"/></clipPath><g clip-path="url(#flaskclip)"><rect x="0" y="0" width="64" height="64" fill="#ffffff"/><rect x="0" y="38" width="32" height="26" fill="#6fbf4f"/><rect x="32" y="38" width="32" height="26" fill="#6f8fe0"/></g><path d="M27 15h10v13.5l12.3 19.6c1.5 2.4-.2 5.4-3 5.4H17.7c-2.8 0-4.5-3-3-5.4L27 28.5z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/><rect x="24" y="11" width="16" height="5" rx="2.5" fill="#ffffff"/><circle cx="29" cy="44" r="1.8" fill="#ffffff" opacity=".85"/><circle cx="36" cy="47.5" r="1.3" fill="#ffffff" opacity=".85"/><circle cx="33" cy="41" r="1" fill="#ffffff" opacity=".85"/></svg></span><span data-i-key="appName"></span></div>
     <nav class="tabs" data-i-aria="nav.aria">
-      <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
       <a href="#calendar" data-tab="calendar" data-i-key="tabs.calendar"></a>
+      <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
       <a href="#chains" data-tab="chains" data-i-key="tabs.chains"></a>
       <a href="#freezer" data-tab="freezer" data-i-key="tabs.freezer"></a>
       <a href="#reagents" data-tab="reagents" data-i-key="tabs.reagents"></a>
@@ -937,7 +937,7 @@ function setLang(l) {
   render(); if (Drawer.coll) Drawer.render();
 }
 function render() {
-  const h = (location.hash || "#journal").slice(1); UI.tab = ["reagents", "chains", "freezer", "calendar"].includes(h) ? h : "journal";
+  const h = (location.hash || "#calendar").slice(1); UI.tab = ["journal", "reagents", "chains", "freezer"].includes(h) ? h : "calendar";
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === UI.tab ? "page" : "false"));
   $$(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.site === UI.site)));
   const main = $("#main");
@@ -1126,6 +1126,7 @@ function viewCalendar() {
       <h2 class="cal-title">${fmtMonth(ym)}</h2>
       <button class="btn" type="button" data-act="cal-next" aria-label="${tr("cal.next")}">›</button>
       <button class="btn ghost sm" type="button" data-act="cal-today">${tr("cal.today")}</button>
+      <button class="btn primary sm" type="button" data-act="new-exp" ${UI.calDay ? `data-date="${UI.calDay}"` : ""} ${S.readOnly ? "disabled" : ""}>${tr("j.new")}</button>
       <span class="spacer"></span>
       <div class="cal-year">${yearCounts.map(([k, n]) => `<button type="button" class="cal-m ${k === ym ? "on" : ""} ${n ? "act" : ""}" data-act="cal-month" data-month="${k}" title="${esc(fmtMonth(k))}">${esc(new Intl.DateTimeFormat(loc(), { month: "short" }).format(dateObj(k + "-01")).replace(/\.$/, ""))}${n ? `<i>${n}</i>` : ""}</button>`).join("")}</div>
     </div>
@@ -1401,7 +1402,7 @@ function confirmBox(title, text, okLabel, fn) {
   Modal.open(`<h2>${esc(title)}</h2><p>${text}</p><div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${esc(okLabel)}</button></div>`, () => { fn(); return true; });
 }
 
-function newExperiment(parentId) {
+function newExperiment(parentId, startDate) {
   const par = parentId && S.exp[parentId];
   const defType = par ? (NEXT_TYPE[par.type] || par.type) : "crosslinking";
   const tOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${k === defType ? "selected" : ""}>${esc(t.name)}</option>`).join("");
@@ -1409,7 +1410,7 @@ function newExperiment(parentId) {
     ${par ? `<p class="hint">${tr("e.from")} <b>${esc(par.title)}</b></p>` : ""}
     <label class="f"><span>${tr("f.type")}</span><select id="mType">${tOpts}</select></label>
     <label class="f"><span>${tr("th.name")}</span><input type="text" id="mTitle" placeholder="${tr("ne.titlePh")}"></label>
-    <div class="grid2"><label class="f"><span>${tr("ne.date")}</span><input type="date" id="mDate" value="${today()}"></label>
+    <div class="grid2"><label class="f"><span>${tr("ne.date")}</span><input type="date" id="mDate" value="${startDate || today()}"></label>
     <label class="f"><span>${tr("f.lab")}</span><select id="mSite">${siteOptions(UI.site !== "all" ? UI.site : "babtai", true)}</select></label></div>
     <label class="check"><input type="checkbox" id="mPreset" checked> ${tr("ne.preset")}</label>
     <div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${tr("ne.create")}</button></div>`, () => {
@@ -1529,7 +1530,7 @@ document.addEventListener("click", (ev) => {
   const i = a.dataset.i != null ? +a.dataset.i : null, j = a.dataset.j != null ? +a.dataset.j : null;
   switch (act) {
     case "close": Drawer.close(); break;
-    case "new-exp": newExperiment(); break;
+    case "new-exp": newExperiment(null, a.dataset.date); break;
     case "next-step": newExperiment(a.dataset.id); break;
     case "fz-add": newSample(a.dataset.id); break;
     case "cal-prev": UI.calMonth = addMonths(UI.calMonth, -1); UI.calDay = ""; render(); break;
