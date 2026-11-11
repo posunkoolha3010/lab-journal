@@ -156,6 +156,42 @@ tr.fz-used td,tr.fz-discarded td{opacity:.55}
 .fzbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;border-radius:var(--r);background:var(--bg)}
 .fzbox .lbl{width:100%;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .fzbox .pchip{padding:3px 10px;text-decoration:none}
+.cal-head{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.cal-title{font-family:var(--font-display);font-size:18px;font-weight:500;min-width:170px;text-align:center}
+.cal-year{display:flex;flex-wrap:wrap;gap:3px}
+.cal-m{border:1px solid transparent;background:none;border-radius:8px;padding:4px 7px;font-size:12px;color:var(--muted);cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+.cal-m.act{color:var(--ink);font-weight:600}
+.cal-m i{font-style:normal;font-family:var(--font-mono);font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:0 5px}
+.cal-m.on{border-color:var(--line);background:var(--surface)}
+.cal-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.cal-wd{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
+.cal-cell{min-height:84px;border:1px solid transparent;border-radius:8px;background:none;padding:5px 6px;text-align:left;display:flex;flex-direction:column;gap:3px;position:relative;font:inherit;color:inherit;min-width:0}
+.cal-cell.pad{min-height:0}
+button.cal-cell{cursor:default}
+.cal-cell.has{cursor:pointer;background:var(--bg)}
+.cal-cell.has:hover{border-color:var(--muted)}
+.cal-cell.babtai{background:var(--babtai-soft);border-left:3px solid var(--babtai)}
+.cal-cell.kaunas{background:var(--kaunas-soft);border-left:3px solid var(--kaunas)}
+.cal-cell.both{background:linear-gradient(135deg,var(--babtai-soft) 50%,var(--kaunas-soft) 50%);border-left:3px solid var(--babtai)}
+.cal-cell.today .cal-n{background:var(--ink);color:var(--bg);border-radius:999px;padding:0 6px}
+.cal-cell.sel{outline:2px solid var(--accent);outline-offset:-1px}
+.cal-n{font-family:var(--font-mono);font-size:13px;font-weight:600;align-self:flex-start}
+.cal-items{display:grid;gap:2px;min-width:0}
+.cal-t{font-size:11.5px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-t.more{color:var(--muted)}
+.cal-dot{display:none}
+.cal-side{display:grid;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;max-height:640px;overflow:auto}
+.cal-row{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:start;text-align:left;background:none;border:0;border-radius:8px;padding:7px 6px;cursor:pointer;font:inherit;color:inherit}
+.cal-row:hover{background:var(--bg)}
+.cal-row-d{font-family:var(--font-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.cal-row b{display:block;font-weight:600;font-size:14px}
+.cal-row .small{display:block;font-size:12px;color:var(--muted)}
+.cal-row-s{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+@media (max-width:860px){.cal-wrap{grid-template-columns:1fr}.cal-side{max-height:none}}
+@media (max-width:640px){.cal-cell{min-height:46px;padding:4px;align-items:center}.cal-items{display:none}.cal-dot{display:block;font-size:10px;font-family:var(--font-mono);color:var(--muted)}.cal-n{align-self:center}.cal-title{min-width:0;flex:1}}
+nav.tabs a{white-space:nowrap}
+@media (max-width:760px){nav.tabs{order:10;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}nav.tabs::-webkit-scrollbar{display:none}}
 select.lang{width:auto;padding:5px 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* reagents table */
@@ -245,6 +281,7 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
     <div class="brand"><span class="mark" aria-hidden="true"><svg width="26" height="26" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1f6c66"/><clipPath id="flaskclip"><path d="M27 15h10v13.5l12.3 19.6c1.5 2.4-.2 5.4-3 5.4H17.7c-2.8 0-4.5-3-3-5.4L27 28.5z"/></clipPath><g clip-path="url(#flaskclip)"><rect x="0" y="0" width="64" height="64" fill="#ffffff"/><rect x="0" y="38" width="32" height="26" fill="#6fbf4f"/><rect x="32" y="38" width="32" height="26" fill="#6f8fe0"/></g><path d="M27 15h10v13.5l12.3 19.6c1.5 2.4-.2 5.4-3 5.4H17.7c-2.8 0-4.5-3-3-5.4L27 28.5z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/><rect x="24" y="11" width="16" height="5" rx="2.5" fill="#ffffff"/><circle cx="29" cy="44" r="1.8" fill="#ffffff" opacity=".85"/><circle cx="36" cy="47.5" r="1.3" fill="#ffffff" opacity=".85"/><circle cx="33" cy="41" r="1" fill="#ffffff" opacity=".85"/></svg></span><span data-i-key="appName"></span></div>
     <nav class="tabs" data-i-aria="nav.aria">
       <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
+      <a href="#calendar" data-tab="calendar" data-i-key="tabs.calendar"></a>
       <a href="#chains" data-tab="chains" data-i-key="tabs.chains"></a>
       <a href="#freezer" data-tab="freezer" data-i-key="tabs.freezer"></a>
       <a href="#reagents" data-tab="reagents" data-i-key="tabs.reagents"></a>
@@ -579,6 +616,15 @@ const I18N = {
   "fz.delTitle": ["Poistetaanko pakastinmerkintä?","Видалити запис з морозилки?","Ištrinti šaldiklio įrašą?","Delete this freezer entry?"],
   "fz.delText": ["”{0}” poistuu pakastinlistalta. Jos näytteet on käytetty loppuun, valitse mieluummin tila ”Käytetty loppuun”.","«{0}» зникне зі списку морозилки. Якщо зразки витрачено, краще поставити статус «Витрачено».","„{0}“ dings iš šaldiklio sąrašo. Jei mėginiai sunaudoti, geriau nustatyti būseną „Sunaudoti“.","“{0}” will disappear from the freezer list. If the samples are used up, set the status to “Used up” instead."],
   "fz.newLabel": ["Uudet näytteet","Нові зразки","Nauji mėginiai","New samples"],
+  "tabs.calendar": ["Kalenteri","Календар","Kalendorius","Calendar"],
+  "cal.today": ["Tänään","Сьогодні","Šiandien","Today"],
+  "cal.prev": ["Edellinen kuukausi","Попередній місяць","Ankstesnis mėnuo","Previous month"],
+  "cal.next": ["Seuraava kuukausi","Наступний місяць","Kitas mėnuo","Next month"],
+  "cal.dayEmpty": ["Tänä päivänä ei ole kirjattuja kokeita.","Цього дня експериментів не записано.","Šią dieną eksperimentų neįrašyta.","No experiments recorded on this day."],
+  "cal.pick": ["Valitse päivä nähdäksesi sen kokeet.","Виберіть день, щоб побачити його експерименти.","Pasirinkite dieną, kad pamatytumėte jos eksperimentus.","Pick a day to see its experiments."],
+  "cal.monthH": ["Työpäivät tässä kuussa","Робочі дні цього місяця","Šio mėnesio darbo dienos","Lab days this month"],
+  "cal.monthEmpty": ["Tässä kuussa ei ole kirjattuja kokeita.","У цьому місяці експериментів не записано.","Šį mėnesį eksperimentų neįrašyta.","No experiments recorded this month."],
+  "cal.more": ["+{0} lisää","+{0} ще","+{0} daugiau","+{0} more"],
   "tabs.chains": ["Näyteketjut","Ланцюжки зразків","Mėginių grandinės","Sample chains"],
   "ch.waitingH": ["Odottavat näytteet","Зразки чекають на роботу","Mėginiai laukia darbo","Samples waiting"],
   "ch.waitingHint": ["Nämä kokeet ovat valmiita, mutta niiden näytteitä ei ole vielä käytetty myöhemmissä kokeissa.","Ці експерименти завершено, але їхні зразки ще ніде далі не використано.","Šie eksperimentai baigti, bet jų mėginiai dar niekur toliau nepanaudoti.","These experiments are finished, but their samples haven't been used in any later experiment yet."],
@@ -872,7 +918,7 @@ function isLow(r, bal) { return r.kind !== "mix" && bal != null && ((r.low != nu
 function lastUse(L) { for (let i = L.events.length - 1; i >= 0; i--) if (L.events[i].kind === "use") return L.events[i]; return null; }
 
 /* ============================== UI state & render ============================== */
-const UI = { fzShowUsed: false, onlyWaiting: false, tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
+const UI = { calMonth: today().slice(0, 7), calDay: "", fzShowUsed: false, onlyWaiting: false, tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
 
 function applyStaticAll() {
   document.documentElement.lang = LANG;
@@ -890,7 +936,7 @@ function setLang(l) {
   render(); if (Drawer.coll) Drawer.render();
 }
 function render() {
-  const h = (location.hash || "#journal").slice(1); UI.tab = ["reagents", "chains", "freezer"].includes(h) ? h : "journal";
+  const h = (location.hash || "#journal").slice(1); UI.tab = ["reagents", "chains", "freezer", "calendar"].includes(h) ? h : "journal";
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === UI.tab ? "page" : "false"));
   $$(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.site === UI.site)));
   const main = $("#main");
@@ -900,7 +946,7 @@ function render() {
   main.innerHTML = (S.readOnly ? `<div class="banner">${tr("banner.readonly")}</div>` : "")
     + fileBanner()
     + (S.slow ? `<div class="banner">${tr("banner.slow")}</div>` : "")
-    + (UI.tab === "journal" ? viewJournal() : UI.tab === "chains" ? viewChains() : UI.tab === "freezer" ? viewFreezer() : viewReagents());
+    + (UI.tab === "journal" ? viewJournal() : UI.tab === "chains" ? viewChains() : UI.tab === "freezer" ? viewFreezer() : UI.tab === "calendar" ? viewCalendar() : viewReagents());
   if (keepFocus) { const el = document.getElementById(keepFocus); if (el) { el.focus(); try { el.setSelectionRange(sel[0], sel[1]); } catch {} } }
 }
 let renderT; function renderSoon() { clearTimeout(renderT); renderT = setTimeout(render, 150); }
@@ -1034,6 +1080,61 @@ function viewChains() {
 const FZ_ST = labels("fz.st.", ["stored", "partial", "used", "discarded"]);
 const fzActive = (o) => o.status !== "used" && o.status !== "discarded";
 function fzUsedIn(o, kids) { return o.experimentId && S.exp[o.experimentId] ? (kids[o.experimentId] || []) : []; }
+/* ---------- calendar ---------- */
+// date -> [{ id, stages: [titles], sites: [..] }]
+function calEvents() {
+  const by = {};
+  for (const [id, e] of Object.entries(S.exp)) {
+    const dated = (e.stages || []).filter(s => s.date && (UI.site === "all" || s.site === UI.site));
+    const items = dated.length ? dated.map(s => [s.date, s.title, s.site]) : (e.startDate && (UI.site === "all" || expSites(e).includes(UI.site) || !expSites(e).length && UI.site === "all") && !(e.stages || []).some(s => s.date) ? [[e.startDate, "", expSites(e)[0] || ""]] : []);
+    for (const [d, title, site] of items) {
+      const list = by[d] = by[d] || []; let it = list.find(x => x.id === id);
+      if (!it) { it = { id, stages: [], sites: [] }; list.push(it); }
+      if (title && !it.stages.includes(title)) it.stages.push(title);
+      if (site && !it.sites.includes(site)) it.sites.push(site);
+    }
+  }
+  return by;
+}
+function addMonths(ym, n) { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+function viewCalendar() {
+  const ev = calEvents(); const ym = UI.calMonth; const [y, m] = ym.split("-").map(Number);
+  const first = new Date(y, m - 1, 1); const lead = (first.getDay() + 6) % 7; const days = new Date(y, m, 0).getDate();
+  const wd = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(loc(), { weekday: "short" }).format(new Date(2026, 10, 9 + i)));
+  const td = today(); const cells = [];
+  for (let i = 0; i < lead; i++) cells.push(`<div class="cal-cell pad"></div>`);
+  for (let d = 1; d <= days; d++) {
+    const ds = ym + "-" + String(d).padStart(2, "0"); const items = ev[ds] || [];
+    const sites = [...new Set(items.flatMap(x => x.sites))];
+    const cls = items.length ? (sites.length > 1 ? "both" : sites[0] || "plain") : "";
+    cells.push(`<button type="button" class="cal-cell ${items.length ? "has " + cls : ""} ${ds === td ? "today" : ""} ${ds === UI.calDay ? "sel" : ""}" data-act="cal-day" data-d="${ds}" ${items.length ? "" : "tabindex=\"-1\""} aria-label="${esc(fmtDate(ds, true))}${items.length ? ": " + esc(items.map(x => S.exp[x.id].title).join(", ")) : ""}">
+      <span class="cal-n">${d}</span>${items.length ? `<span class="cal-items">${items.slice(0, 2).map(x => `<span class="cal-t">${esc(S.exp[x.id].title)}</span>`).join("")}${items.length > 2 ? `<span class="cal-t more">${tr("cal.more", items.length - 2)}</span>` : ""}</span><span class="cal-dot" aria-hidden="true">${items.length}</span>` : ""}
+    </button>`);
+  }
+  while (cells.length % 7) cells.push(`<div class="cal-cell pad"></div>`);
+  const monthDays = Object.keys(ev).filter(d => d.startsWith(ym)).sort();
+  const yearCounts = [...Array(12)].map((_, i) => { const k = y + "-" + String(i + 1).padStart(2, "0"); return [k, Object.keys(ev).filter(d => d.startsWith(k)).length]; });
+  const dayItems = UI.calDay ? (ev[UI.calDay] || []) : null;
+  const itemRow = (d, x) => { const e = S.exp[x.id]; return `<button type="button" class="cal-row" data-open-exp="${esc(x.id)}"><span class="cal-row-d">${fmtDate(d)}</span><span><b>${esc(e.title)}</b>${x.stages.length ? `<span class="small">${esc(x.stages.join(" · "))}</span>` : ""}</span><span class="cal-row-s">${x.sites.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("")}</span></button>`; };
+  return `<div class="cal-head">
+      <button class="btn" type="button" data-act="cal-prev" aria-label="${tr("cal.prev")}">‹</button>
+      <h2 class="cal-title">${fmtMonth(ym)}</h2>
+      <button class="btn" type="button" data-act="cal-next" aria-label="${tr("cal.next")}">›</button>
+      <button class="btn ghost sm" type="button" data-act="cal-today">${tr("cal.today")}</button>
+      <span class="spacer"></span>
+      <div class="cal-year">${yearCounts.map(([k, n]) => `<button type="button" class="cal-m ${k === ym ? "on" : ""} ${n ? "act" : ""}" data-act="cal-month" data-month="${k}" title="${esc(fmtMonth(k))}">${esc(new Intl.DateTimeFormat(loc(), { month: "short" }).format(dateObj(k + "-01")).replace(/\.$/, ""))}${n ? `<i>${n}</i>` : ""}</button>`).join("")}</div>
+    </div>
+    <div class="cal-wrap">
+      <div class="cal-grid">${wd.map(w => `<div class="cal-wd">${esc(w)}</div>`).join("")}${cells.join("")}</div>
+      <aside class="cal-side">
+        <div class="block-h">${UI.calDay ? esc(fmtDate(UI.calDay, true)) : tr("cal.monthH")} <span class="n">${UI.calDay ? (dayItems || []).length : monthDays.length}</span></div>
+        ${UI.calDay ? ((dayItems || []).length ? dayItems.map(x => itemRow(UI.calDay, x)).join("") : `<div class="hint">${tr("cal.dayEmpty")}</div>`)
+          : (monthDays.length ? monthDays.map(d => ev[d].map(x => itemRow(d, x)).join("")).join("") : `<div class="hint">${tr("cal.monthEmpty")}</div>`)}
+        ${UI.calDay ? `<p class="hint"><a class="lnk" data-act="cal-clear">${tr("cal.monthH")}</a></p>` : `<p class="hint">${tr("cal.pick")}</p>`}
+      </aside>
+    </div>`;
+}
+
 function viewFreezer() {
   const kids = childIndex(); const q = UI.q.trim().toLowerCase();
   const all = Object.entries(S.smp).filter(([, o]) => UI.site === "all" || o.site === UI.site);
@@ -1426,6 +1527,12 @@ document.addEventListener("click", (ev) => {
     case "new-exp": newExperiment(); break;
     case "next-step": newExperiment(a.dataset.id); break;
     case "fz-add": newSample(a.dataset.id); break;
+    case "cal-prev": UI.calMonth = addMonths(UI.calMonth, -1); UI.calDay = ""; render(); break;
+    case "cal-next": UI.calMonth = addMonths(UI.calMonth, 1); UI.calDay = ""; render(); break;
+    case "cal-today": UI.calMonth = today().slice(0, 7); UI.calDay = today(); render(); break;
+    case "cal-month": UI.calMonth = a.dataset.month; UI.calDay = ""; render(); break;
+    case "cal-clear": UI.calDay = ""; render(); break;
+    case "cal-day": { const d = a.dataset.d; const items = calEvents()[d] || []; UI.calDay = d; render(); if (items.length === 1) Drawer.open("experiments", items[0].id); break; }
     case "del-smp": confirmBox(tr("fz.delTitle"), tr("fz.delText", esc(o.label || "")), tr("del"), () => { const id = Drawer.id; remove("samples", id); Drawer.close(); }); break;
     case "del-parent": o.parentIds = parentsOf(o).filter(x => x !== a.dataset.pid); delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); break;
     case "new-rea": newReagent(); break;
