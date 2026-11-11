@@ -98,12 +98,12 @@ section.block{display:grid;gap:10px}
 .block-h{display:flex;align-items:baseline;gap:10px;font-family:var(--font-display);font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);padding-bottom:6px}
 .block-h .n{font-family:var(--font-mono)}
 .cards{display:grid;gap:8px}
-.card{display:grid;grid-template-columns:92px 1fr auto;gap:4px 14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;text-align:left;width:100%}
+.card{display:grid;grid-template-columns:112px 1fr auto;gap:4px 14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;text-align:left;width:100%}
 .card:hover{border-color:var(--muted)}
 .card.s-babtai{border-left-color:var(--babtai)} .card.s-kaunas{border-left-color:var(--kaunas)}
 .card.s-both{border-left-color:transparent;background:linear-gradient(var(--babtai) 50%,var(--kaunas) 50%) 0 0/4px 100% no-repeat border-box,var(--surface)}
 .card .d{font-family:var(--font-mono);font-size:13px;color:var(--muted);line-height:1.35}
-.card .d b{display:block;color:var(--ink);font-size:15px}
+.card .d b{display:block;color:var(--ink);font-size:14px;white-space:nowrap}
 .card h3{font-size:16px;font-weight:600;line-height:1.3}
 .card .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;align-items:center}
 .card .sub{color:var(--muted);font-size:13px;margin-top:4px;overflow-wrap:anywhere}
@@ -122,6 +122,7 @@ section.block{display:grid;gap:10px}
 .banner{padding:10px 14px;border-radius:var(--r);background:var(--warn-soft);color:var(--warn);font-size:14px}
 .filebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:8px 8px 8px 14px;border-radius:var(--r);background:var(--accent-soft);font-size:14px}
 .filebar.warn{background:var(--warn-soft)}
+select.lang{width:auto;padding:5px 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* reagents table */
 .tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
@@ -207,28 +208,29 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand"><i aria-hidden="true"></i>Лабжурнал</div>
-    <nav class="tabs" aria-label="Разделы">
-      <a href="#journal" data-tab="journal">Эксперименты</a>
-      <a href="#reagents" data-tab="reagents">Реагенты и стоки</a>
+    <div class="brand"><i aria-hidden="true"></i><span data-i-key="appName"></span></div>
+    <nav class="tabs" data-i-aria="nav.aria">
+      <a href="#journal" data-tab="journal" data-i-key="tabs.journal"></a>
+      <a href="#reagents" data-tab="reagents" data-i-key="tabs.reagents"></a>
     </nav>
     <div class="spacer"></div>
-    <div class="seg" role="group" aria-label="Лаборатория">
-      <button type="button" data-site="all" aria-pressed="true">Обе</button>
-      <button type="button" data-site="babtai" aria-pressed="false">Бабтай</button>
-      <button type="button" data-site="kaunas" aria-pressed="false">Каунас</button>
+    <div class="seg" role="group" data-i-aria="site.aria">
+      <button type="button" data-site="all" aria-pressed="true" data-i-key="site.all"></button>
+      <button type="button" data-site="babtai" aria-pressed="false" data-i-key="site.babtai"></button>
+      <button type="button" data-site="kaunas" aria-pressed="false" data-i-key="site.kaunas"></button>
     </div>
-    <span class="sync" id="sync" data-s="">Подключаюсь…</span>
+    <select id="lang" class="lang" data-i-aria="lang.aria"></select>
+    <span class="sync" id="sync" data-s="" data-i-key="connecting"></span>
   </div>
 </header>
 
 <main id="main">
-  <div class="empty">Загружаю журнал…</div>
+  <div class="empty" data-i-key="loading"></div>
 </main>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
-  <div class="dr-head"><span class="t" id="drTitle"></span><span id="drActions" class="row-actions"></span><button class="btn ghost" type="button" data-act="close" aria-label="Закрыть">✕</button></div>
+  <div class="dr-head"><span class="t" id="drTitle"></span><span id="drActions" class="row-actions"></span><button class="btn ghost" type="button" data-act="close" data-i-aria="close">✕</button></div>
   <div class="dr-body" id="drBody"></div>
 </aside>
 <div class="modal" id="modal"><div class="modal-box" id="modalBox" role="dialog" aria-modal="true"></div></div>
@@ -238,34 +240,323 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
 
 <script>
 "use strict";
+/* ============================== languages ============================== */
+// Each entry: [ru, uk, lt, en]. {0}, {1} are filled in by tr().
+const LANGS = { uk: "Українська", lt: "Lietuvių", en: "English", ru: "Русский" };
+const LOCALE = { uk: "uk-UA", lt: "lt-LT", en: "en-GB", ru: "ru-RU" };
+const LIDX = { ru: 0, uk: 1, lt: 2, en: 3 };
+const I18N = {
+  appName: ["Лабжурнал", "Лабжурнал", "Lab. žurnalas", "Lab journal"],
+  "tabs.journal": ["Эксперименты", "Експерименти", "Eksperimentai", "Experiments"],
+  "tabs.reagents": ["Реагенты и стоки", "Реактиви та стоки", "Reagentai ir tirpalai", "Reagents & stocks"],
+  "nav.aria": ["Разделы", "Розділи", "Skiltys", "Sections"],
+  "lang.aria": ["Язык", "Мова", "Kalba", "Language"],
+  "site.aria": ["Лаборатория", "Лабораторія", "Laboratorija", "Lab"],
+  "site.all": ["Обе", "Обидві", "Abi", "Both"],
+  "site.babtai": ["Бабтай", "Бабтай", "Babtai", "Babtai"],
+  "site.kaunas": ["Каунас", "Каунас", "Kaunas", "Kaunas"],
+  "site.none": ["— без лаборатории", "— без лабораторії", "— be laboratorijos", "— no lab"],
+  "site.noneGroup": ["Без лаборатории", "Без лабораторії", "Be laboratorijos", "No lab"],
+  close: ["Закрыть", "Закрити", "Uždaryti", "Close"],
+  loading: ["Загружаю журнал…", "Завантажую журнал…", "Įkeliamas žurnalas…", "Loading the journal…"],
+  connecting: ["Подключаюсь…", "Підключаюся…", "Jungiamasi…", "Connecting…"],
+
+  "kind.reagent": ["Реагент", "Реактив", "Reagentas", "Reagent"],
+  "kind.stock": ["Сток", "Стоковий розчин", "Pradinis tirpalas", "Stock"],
+  "kind.buffer": ["Буфер", "Буфер", "Buferis", "Buffer"],
+  "kind.mix": ["Смесь на месте", "Суміш на місці", "Ruošiamas vietoje", "Made on the spot"],
+  "st.planned": ["Запланирован", "Заплановано", "Suplanuotas", "Planned"],
+  "st.active": ["В работе", "У роботі", "Vykdomas", "In progress"],
+  "st.done": ["Завершён", "Завершено", "Baigtas", "Done"],
+
+  "type.crosslinking": ["Кросслинкинг", "Кросслінкінг", "Kryžminis susiejimas", "Crosslinking"],
+  "type.fractionation": ["Фракционирование + TCA", "Фракціонування + TCA", "Frakcionavimas + TCA", "Fractionation + TCA"],
+  "type.tca": ["TCA-преципитация", "TCA-преципітація", "TCA precipitacija", "TCA precipitation"],
+  "type.phenol": ["Фенольная экстракция", "Фенольна екстракція", "Fenolinė ekstrakcija", "Phenol extraction"],
+  "type.transplant": ["Пересадка растений", "Пересадка рослин", "Augalų persodinimas", "Plant transplanting"],
+  "type.western": ["Western blot", "Western blot", "Western blot", "Western blot"],
+  "type.tryptofluo": ["Триптофановая флуоресценция", "Триптофанова флуоресценція", "Triptofano fluorescencija", "Tryptophan fluorescence"],
+  "type.analysis": ["Анализ данных", "Аналіз даних", "Duomenų analizė", "Data analysis"],
+  "type.other": ["Другое", "Інше", "Kita", "Other"],
+
+  "ps.xl1": ["Сбор образцов в PBS + формальдегид", "Збір зразків у PBS + формальдегід", "Mėginių surinkimas į PBS + formaldehidas", "Sample collection in PBS + formaldehyde"],
+  "ps.xl2": ["Вакуум-инфильтрация 3 × 10 мин", "Вакуум-інфільтрація 3 × 10 хв", "Vakuuminė infiltracija 3 × 10 min", "Vacuum infiltration 3 × 10 min"],
+  "ps.xl3": ["Квенчинг глицином", "Квенчинг гліцином", "Gesinimas glicinu", "Quenching with glycine"],
+  "ps.xl4": ["Отмывка PBS ×3 + вода ×1", "Відмивання PBS ×3 + вода ×1", "Plovimas PBS ×3 + vanduo ×1", "Wash PBS ×3 + water ×1"],
+  "ps.xl5": ["Сушка и заморозка, −80 °C", "Підсушування і заморожування, −80 °C", "Džiovinimas ir užšaldymas, −80 °C", "Blot dry and freeze, −80 °C"],
+  "ps.fr1": ["Фракционирование EXB1 → EXB2 → EXB3", "Фракціонування EXB1 → EXB2 → EXB3", "Frakcionavimas EXB1 → EXB2 → EXB3", "Fractionation EXB1 → EXB2 → EXB3"],
+  "ps.fr2": ["TCA/ацетон преципитация + отмывка", "TCA/ацетон преципітація + відмивання", "TCA/acetono precipitacija + plovimas", "TCA/acetone precipitation + wash"],
+  "ps.tca1": ["TCA/ацетон преципитация", "TCA/ацетон преципітація", "TCA/acetono precipitacija", "TCA/acetone precipitation"],
+  "ps.tca2": ["Отмывка ацетоном ×2", "Відмивання ацетоном ×2", "Plovimas acetonu ×2", "Acetone wash ×2"],
+  "ps.tca3": ["Растворение осадка", "Розчинення осаду", "Nuosėdų tirpinimas", "Pellet resolubilisation"],
+  "ps.ph1": ["Экстракция фенолом", "Екстракція фенолом", "Ekstrakcija fenoliu", "Phenol extraction"],
+  "ps.ph2": ["Преципитация", "Преципітація", "Precipitacija", "Precipitation"],
+  "ps.ph3": ["Отмывка и растворение осадка", "Відмивання і розчинення осаду", "Plovimas ir nuosėdų tirpinimas", "Wash and pellet resolubilisation"],
+  "ps.tr1": ["Пересадка", "Пересадка", "Persodinimas", "Transplanting"],
+  "ps.wb1": ["Гели и SDS-PAGE", "Гелі та SDS-PAGE", "Geliai ir SDS-PAGE", "Gels and SDS-PAGE"],
+  "ps.wb2": ["Перенос и блокировка", "Перенесення та блокування", "Pernaša ir blokavimas", "Transfer and blocking"],
+  "ps.wb3": ["Первичные АТ", "Первинні АТ", "Pirminiai AK", "Primary antibodies"],
+  "ps.wb4": ["Вторичные АТ и детекция", "Вторинні АТ і детекція", "Antriniai AK ir detekcija", "Secondary antibodies and detection"],
+  "ps.tf1": ["Буферы и стандарты BSA", "Буфери та стандарти BSA", "Buferiai ir BSA standartai", "Buffers and BSA standards"],
+  "ps.tf2": ["Измерение", "Вимірювання", "Matavimas", "Measurement"],
+  "ps.an1": ["Анализ", "Аналіз", "Analizė", "Analysis"],
+  "ps.ot1": ["Этап 1", "Етап 1", "1 etapas", "Step 1"],
+
+  "sync.saving": ["Сохраняю…", "Зберігаю…", "Saugoma…", "Saving…"],
+  "sync.ok": ["Синхронизировано", "Синхронізовано", "Sinchronizuota", "Synced"],
+  "sync.readonly": ["Только чтение", "Лише перегляд", "Tik skaityti", "Read only"],
+  "sync.full": ["Хранилище заполнено", "Сховище заповнене", "Saugykla pilna", "Storage full"],
+  "sync.err": ["Ошибка сохранения", "Помилка збереження", "Išsaugoti nepavyko", "Save failed"],
+  "sync.offline": ["Нет связи", "Немає зв'язку", "Nėra ryšio", "Offline"],
+  "sync.revoked": ["Доступ закрыт", "Доступ закрито", "Prieiga uždaryta", "Access closed"],
+  "sync.fileErr": ["Файл не сохранён", "Файл не збережено", "Failas neišsaugotas", "File not saved"],
+  "sync.fileSaving": ["Сохраняю в файл…", "Зберігаю у файл…", "Saugoma į failą…", "Saving to file…"],
+  "sync.fileOk": ["Сохранено в {0}", "Збережено в {0}", "Išsaugota: {0}", "Saved to {0}"],
+  "sync.local": ["Только этот браузер", "Лише цей браузер", "Tik ši naršyklė", "This browser only"],
+  "toast.full": ["Хранилище заполнено: удалите лишние записи.", "Сховище заповнене: видаліть зайві записи.", "Saugykla pilna: ištrinkite nereikalingus įrašus.", "Storage is full: delete records you no longer need."],
+  "toast.fileLinked": ["Журнал сохраняется в {0}", "Журнал зберігається в {0}", "Žurnalas saugomas faile {0}", "The journal is saved to {0}"],
+  "toast.notJournal": ["Это не файл журнала", "Це не файл журналу", "Tai ne žurnalo failas", "This is not a journal file"],
+  "toast.newerLocal": ["В браузере были более новые записи: они сохранены в файл", "У браузері були новіші записи: їх збережено у файл", "Naršyklėje buvo naujesnių įrašų: jie išsaugoti faile", "The browser had newer records: they were saved to the file"],
+  "toast.noPerm": ["Без разрешения на запись файл не будет обновляться", "Без дозволу на запис файл не оновлюватиметься", "Be leidimo rašyti failas nebus atnaujinamas", "Without write permission the file won't be updated"],
+  "toast.opened": ["Открыт {0}", "Відкрито {0}", "Atidaryta: {0}", "Opened {0}"],
+  "toast.saveFail": ["Не получилось сохранить файл", "Не вдалося зберегти файл", "Nepavyko išsaugoti failo", "Couldn't save the file"],
+  "toast.copied": ["Резервная копия скопирована в буфер обмена", "Резервну копію скопійовано в буфер обміну", "Atsarginė kopija nukopijuota į iškarpinę", "Backup copied to the clipboard"],
+
+  "file.confirmTitle": ["Открыть файл журнала?", "Відкрити файл журналу?", "Atidaryti žurnalo failą?", "Open a journal file?"],
+  "file.confirmText": ["Записи, которые сейчас в этом браузере, заменятся содержимым файла. Если они нужны, сначала нажмите «Экспорт».", "Записи, що зараз у цьому браузері, заміняться вмістом файлу. Якщо вони потрібні, спершу натисніть «Експорт».", "Šioje naršyklėje esantys įrašai bus pakeisti failo turiniu. Jei jų reikia, pirmiausia spauskite „Eksportuoti“.", "Records currently in this browser will be replaced by the file's contents. If you need them, click “Export” first."],
+  "file.pick": ["Выбрать файл", "Вибрати файл", "Pasirinkti failą", "Choose file"],
+  "file.typeDesc": ["Журнал (JSON)", "Журнал (JSON)", "Žurnalas (JSON)", "Journal (JSON)"],
+  "file.linked": ["Журнал сохраняется в файл <b>{0}</b> на этом компьютере.", "Журнал зберігається у файл <b>{0}</b> на цьому комп'ютері.", "Žurnalas saugomas faile <b>{0}</b> šiame kompiuteryje.", "The journal is saved to <b>{0}</b> on this computer."],
+  "file.openOther": ["Открыть другой", "Відкрити інший", "Atidaryti kitą", "Open another"],
+  "file.unlink": ["Отвязать", "Від'єднати", "Atsieti", "Unlink"],
+  "file.needPerm": ["Браузер просит заново разрешить запись в <b>{0}</b>.", "Браузер просить знову дозволити запис у <b>{0}</b>.", "Naršyklė prašo vėl leisti rašyti į <b>{0}</b>.", "The browser asks you to allow writing to <b>{0}</b> again."],
+  "file.continue": ["Продолжить с {0}", "Продовжити з {0}", "Tęsti su {0}", "Continue with {0}"],
+  "file.otherFile": ["Другой файл", "Інший файл", "Kitas failas", "Another file"],
+  "file.browserOnly": ["Сейчас записи только в этом браузере. Откройте свой файл журнала, и каждое изменение будет сохраняться в него.", "Зараз записи лише в цьому браузері. Відкрийте свій файл журналу, і кожна зміна зберігатиметься в нього.", "Dabar įrašai yra tik šioje naršyklėje. Atidarykite savo žurnalo failą ir kiekvienas pakeitimas bus įrašomas į jį.", "Records are only in this browser right now. Open your journal file and every change will be saved to it."],
+  "file.open": ["Открыть файл .json", "Відкрити файл .json", "Atidaryti .json failą", "Open .json file"],
+  "file.new": ["Создать новый файл", "Створити новий файл", "Sukurti naują failą", "Create a new file"],
+  "file.noFsa": ["В этом браузере файл нельзя обновлять напрямую: откройте файл журнала, а после работы сохраните его копию.", "У цьому браузері файл не можна оновлювати напряму: відкрийте файл журналу, а після роботи збережіть його копію.", "Šioje naršyklėje failo negalima atnaujinti tiesiogiai: atidarykite žurnalo failą, o baigę darbą išsaugokite jo kopiją.", "This browser can't update the file directly: open your journal file, then save a copy when you're done."],
+  "file.save": ["Сохранить файл", "Зберегти файл", "Išsaugoti failą", "Save file"],
+
+  "banner.readonly": ["Здесь можно только смотреть: изменения не сохраняются для вашего уровня доступа.", "Тут можна лише переглядати: зміни не зберігаються для вашого рівня доступу.", "Čia galima tik peržiūrėti: jūsų prieigos lygiu pakeitimai neišsaugomi.", "View only: changes aren't saved at your access level."],
+  "banner.slow": ["Хранилище пока не отвечает. Показанные данные могут быть неполными.", "Сховище поки не відповідає. Показані дані можуть бути неповними.", "Saugykla kol kas neatsako. Rodomi duomenys gali būti nepilni.", "Storage isn't responding yet. The data shown may be incomplete."],
+
+  "j.new": ["+ Эксперимент", "+ Експеримент", "+ Eksperimentas", "+ Experiment"],
+  "j.search": ["Поиск по названию, образцам, заметкам", "Пошук за назвою, зразками, нотатками", "Ieškoti pagal pavadinimą, mėginius, pastabas", "Search titles, samples, notes"],
+  "search.aria": ["Поиск", "Пошук", "Paieška", "Search"],
+  "j.allTypes": ["Все типы", "Усі типи", "Visi tipai", "All types"],
+  "j.anyStatus": ["Любой статус", "Будь-який статус", "Bet kokia būsena", "Any status"],
+  "export": ["Экспорт", "Експорт", "Eksportuoti", "Export"],
+  "import": ["Импорт", "Імпорт", "Importuoti", "Import"],
+  "stat.exps": ["экспериментов", "експериментів", "eksperimentų", "experiments"],
+  "stat.active": ["в работе или в плане", "у роботі або в плані", "vykdomi arba suplanuoti", "in progress or planned"],
+  "stat.days": ["рабочих дней в журнале", "робочих днів у журналі", "darbo dienų žurnale", "lab days logged"],
+  "stat.low": ["реагентов на исходе", "реактивів закінчується", "baigiasi reagentų", "reagents running low"],
+  "j.empty.local": ["Пока нет ни одного эксперимента. Откройте свой файл журнала (lab-journal.json) или нажмите «+ Эксперимент».", "Поки немає жодного експерименту. Відкрийте свій файл журналу (lab-journal.json) або натисніть «+ Експеримент».", "Kol kas nėra nė vieno eksperimento. Atidarykite savo žurnalo failą (lab-journal.json) arba spauskite „+ Eksperimentas“.", "No experiments yet. Open your journal file (lab-journal.json) or click “+ Experiment”."],
+  "j.empty.db": ["Пока нет ни одного эксперимента. Нажмите «+ Эксперимент» или загрузите резервную копию через «Импорт».", "Поки немає жодного експерименту. Натисніть «+ Експеримент» або завантажте резервну копію через «Імпорт».", "Kol kas nėra nė vieno eksperimento. Spauskite „+ Eksperimentas“ arba įkelkite atsarginę kopiją per „Importuoti“.", "No experiments yet. Click “+ Experiment” or load a backup with “Import”."],
+  "j.nothing": ["Ничего не нашлось с такими фильтрами.", "Нічого не знайдено з такими фільтрами.", "Pagal šiuos filtrus nieko nerasta.", "Nothing matches these filters."],
+  "j.activeH": ["Сейчас в работе", "Зараз у роботі", "Dabar vykdoma", "In progress now"],
+  "j.noDate": ["Без даты", "Без дати", "Be datos", "No date"],
+  untitled: ["Без названия", "Без назви", "Be pavadinimo", "Untitled"],
+  "card.reagents": ["реагентов: {0}", "реактивів: {0}", "reagentų: {0}", "reagents: {0}"],
+  "card.stages": ["{0}/{1} этапов", "{0}/{1} етапів", "{0}/{1} etapų", "{0}/{1} steps"],
+
+  "r.new": ["+ Реагент или сток", "+ Реактив або стоковий розчин", "+ Reagentas ar tirpalas", "+ Reagent or stock"],
+  "r.search": ["Поиск по названию, компонентам", "Пошук за назвою, компонентами", "Ieškoti pagal pavadinimą, komponentus", "Search names, components"],
+  "r.allKinds": ["Все виды", "Усі види", "Visos rūšys", "All kinds"],
+  "r.lowOnly": ["Только заканчивающиеся", "Лише ті, що закінчуються", "Tik besibaigiantys", "Running low only"],
+  "r.nothing": ["Ничего не нашлось.", "Нічого не знайдено.", "Nieko nerasta.", "Nothing found."],
+  "r.empty": ["Пока нет реагентов. Добавьте первый.", "Поки немає реактивів. Додайте перший.", "Kol kas nėra reagentų. Pridėkite pirmąjį.", "No reagents yet. Add the first one."],
+  "th.name": ["Название", "Назва", "Pavadinimas", "Name"],
+  "th.kind": ["Вид", "Вид", "Rūšis", "Kind"],
+  "th.where": ["Где", "Де", "Kur", "Where"],
+  "th.left": ["Остаток", "Залишок", "Likutis", "Left"],
+  "th.lastUse": ["Последний расход", "Остання витрата", "Paskutinis sunaudojimas", "Last used"],
+  "r.mixShort": ["готовится на месте", "готується на місці", "ruošiamas vietoje", "made on the spot"],
+  "r.untracked": ["не учтён", "не враховано", "neapskaitytas", "not tracked"],
+  "r.low": ["мало", "мало", "mažai", "low"],
+  "r.recipeN": ["рецепт: {0} компонент.", "рецепт: {0} компон.", "receptas: {0} komp.", "recipe: {0} components"],
+  "r.usedN": ["израсходовано: {0}", "витрачено: {0}", "sunaudota: {0}", "used: {0}"],
+  "r.hint": ["Остаток считается от первой записанной партии или инвентаризации: всё, что было использовано до неё, видно в истории, но в остаток не входит.", "Залишок рахується від першої записаної партії чи інвентаризації: усе, що використано до неї, видно в історії, але в залишок не входить.", "Likutis skaičiuojamas nuo pirmos įrašytos partijos ar inventorizacijos: tai, kas sunaudota anksčiau, matyti istorijoje, bet į likutį neįskaičiuojama.", "The balance counts from the first recorded batch or stock check: anything used before that shows in the history but isn't counted."],
+
+  "dr.deleted": ["Запись удалена.", "Запис видалено.", "Įrašas ištrintas.", "This record was deleted."],
+  "dr.exp": ["Эксперимент", "Експеримент", "Eksperimentas", "Experiment"],
+  dup: ["Повторить", "Повторити", "Pakartoti", "Repeat"],
+  del: ["Удалить", "Видалити", "Ištrinti", "Delete"],
+  pick: ["— выберите —", "— виберіть —", "— pasirinkite —", "— choose —"],
+  noConsume: ["— не списывать —", "— не списувати —", "— nenurašyti —", "— don't deduct —"],
+  removedOpt: ["(удалён)", "(видалено)", "(ištrintas)", "(deleted)"],
+
+  "e.titlePh": ["Название эксперимента", "Назва експерименту", "Eksperimento pavadinimas", "Experiment title"],
+  "f.type": ["Тип", "Тип", "Tipas", "Type"],
+  "f.status": ["Статус", "Статус", "Būsena", "Status"],
+  "f.start": ["Начало", "Початок", "Pradžia", "Start"],
+  "f.end": ["Конец", "Кінець", "Pabaiga", "End"],
+  "f.samples": ["Образцы", "Зразки", "Mėginiai", "Samples"],
+  "f.samplesPh": ["Сорт, обработка, номера проб, навески", "Сорт, обробка, номери проб, наважки", "Veislė, apdorojimas, mėginių numeriai, svoriai", "Cultivar, treatment, sample IDs, weights"],
+  "f.parent": ["Образцы взяты из эксперимента", "Зразки взято з експерименту", "Mėginiai paimti iš eksperimento", "Samples come from experiment"],
+  "f.file": ["Файл отчёта", "Файл звіту", "Ataskaitos failas", "Report file"],
+  "f.filePh": ["например crosslinking_26_11_09.docx", "наприклад crosslinking_26_11_09.docx", "pvz., crosslinking_26_11_09.docx", "e.g. crosslinking_26_11_09.docx"],
+  "e.from": ["Образцы из:", "Зразки з:", "Mėginiai iš:", "Samples from:"],
+  "e.usedIn": ["Образцы использованы в:", "Зразки використано в:", "Mėginiai panaudoti:", "Samples used in:"],
+  "f.notes": ["Цель и итоги", "Мета і підсумки", "Tikslas ir rezultatai", "Aim and results"],
+  "e.stagesH": ["Этапы", "Етапи", "Etapai", "Steps"],
+  "e.addStage": ["+ Этап", "+ Етап", "+ Etapas", "+ Step"],
+  "e.noStages": ["Нет этапов.", "Немає етапів.", "Nėra etapų.", "No steps."],
+  "e.presetLink": ["Добавить этапы для «{0}»", "Додати етапи для «{0}»", "Pridėti etapus: „{0}“", "Add steps for “{0}”"],
+  "e.logH": ["Заметки по ходу", "Нотатки по ходу", "Pastabos eigoje", "Running notes"],
+  "e.logHint": ["Быстрые записи с временем: что заметили, что пошло не так, идеи на следующий раз.", "Швидкі записи з часом: що помітили, що пішло не так, ідеї на наступний раз.", "Greiti įrašai su laiku: ką pastebėjote, kas nepavyko, idėjos kitam kartui.", "Quick time-stamped notes: what you noticed, what went wrong, ideas for next time."],
+  "e.logPh": ["Новая заметка…", "Нова нотатка…", "Nauja pastaba…", "New note…"],
+  "e.logAdd": ["Добавить", "Додати", "Pridėti", "Add"],
+  "e.delNote": ["Удалить заметку", "Видалити нотатку", "Ištrinti pastabą", "Delete note"],
+
+  "s.titlePh": ["Что делали", "Що робили", "Ką darėte", "What was done"],
+  "s.titleAria": ["Название этапа", "Назва етапу", "Etapo pavadinimas", "Step title"],
+  "s.up": ["Выше", "Вище", "Aukščiau", "Move up"],
+  "s.del": ["Удалить этап", "Видалити етап", "Ištrinti etapą", "Delete step"],
+  "f.date": ["Дата", "Дата", "Data", "Date"],
+  "f.lab": ["Лаборатория", "Лабораторія", "Laboratorija", "Lab"],
+  "f.stageNotes": ["Заметки", "Нотатки", "Pastabos", "Notes"],
+  "s.notesPh": ["Наблюдения, отклонения от протокола", "Спостереження, відхилення від протоколу", "Stebėjimai, nukrypimai nuo protokolo", "Observations, deviations from the protocol"],
+  "s.used": ["Использовано", "Використано", "Panaudota", "Used"],
+  "s.addReagent": ["+ Реагент", "+ Реактив", "+ Reagentas", "+ Reagent"],
+  "s.byRecipe": ["+ По рецепту", "+ За рецептом", "+ Pagal receptą", "+ From recipe"],
+  "s.usageHint": ["Добавьте реагенты, и расход появится во вкладке «Реагенты и стоки».", "Додайте реактиви, і витрата з'явиться у вкладці «Реактиви та стоки».", "Pridėkite reagentus ir sunaudojimas atsiras skiltyje „Reagentai ir tirpalai“.", "Add reagents and the usage will show up under “Reagents & stocks”."],
+  "u.reagent": ["Реагент", "Реактив", "Reagentas", "Reagent"],
+  "u.amountPh": ["кол-во", "к-сть", "kiekis", "amount"],
+  "u.amount": ["Количество", "Кількість", "Kiekis", "Amount"],
+  "u.unit": ["Единица", "Одиниця", "Vienetas", "Unit"],
+  "u.notePh": ["комментарий", "коментар", "komentaras", "comment"],
+  "u.note": ["Комментарий", "Коментар", "Komentaras", "Comment"],
+  "u.remove": ["Убрать", "Прибрати", "Pašalinti", "Remove"],
+
+  "calc.deleted": ["Реагент удалён из списка.", "Реактив видалено зі списку.", "Reagentas pašalintas iš sąrašo.", "This reagent was removed from the list."],
+  "calc.mix": ["Смесь готовится на месте: остаток не ведётся. Используйте «+ По рецепту», чтобы списать компоненты.", "Суміш готується на місці: залишок не ведеться. Скористайтеся «+ За рецептом», щоб списати компоненти.", "Mišinys ruošiamas vietoje: likutis neskaičiuojamas. Naudokite „+ Pagal receptą“, kad nurašytumėte komponentus.", "Mixed on the spot, so no balance is kept. Use “+ From recipe” to deduct its components."],
+  "calc.badUnit": ["Единица {0} не переводится в {1}: этот расход не учтён.", "Одиницю {0} не можна перевести в {1}: цю витрату не враховано.", "Vieneto {0} negalima perskaičiuoti į {1}: šis sunaudojimas neįskaitytas.", "{0} can't be converted to {1}, so this usage isn't counted."],
+  "calc.untracked": ["Остаток {0} не учтён.", "Залишок {0} не враховано.", "{0} likutis neapskaitytas.", "{0} has no tracked balance."],
+  "calc.addBatch": ["Записать партию", "Записати партію", "Įrašyti partiją", "Record a batch"],
+  "calc.after": ["После этого осталось <b>{0}</b>", "Після цього залишилося <b>{0}</b>", "Po to liko <b>{0}</b>", "Left after this: <b>{0}</b>"],
+  "calc.now": ["сейчас {0}", "зараз {0}", "dabar {0}", "now {0}"],
+
+  "bal.mix": ["Смесь готовится на месте, остаток не ведётся. Её рецепт можно добавить к этапу эксперимента кнопкой «+ По рецепту».", "Суміш готується на місці, залишок не ведеться. Її рецепт можна додати до етапу експерименту кнопкою «+ За рецептом».", "Mišinys ruošiamas vietoje, likutis neskaičiuojamas. Jo receptą galima pridėti prie eksperimento etapo mygtuku „+ Pagal receptą“.", "Mixed on the spot, so no balance is kept. Add its recipe to an experiment step with “+ From recipe”."],
+  "bal.used": ["израсходовано всего {0}", "витрачено загалом {0}", "iš viso sunaudota {0}", "{0} used in total"],
+  "bal.lowTail": ["пора готовить или заказывать", "час готувати або замовляти", "laikas ruošti ar užsakyti", "time to make or order more"],
+  "rea.addBatch": ["+ Партия / пополнение", "+ Партія / поповнення", "+ Partija / papildymas", "+ Batch / top-up"],
+  "rea.addCount": ["Сколько осталось сейчас", "Скільки залишилося зараз", "Kiek liko dabar", "How much is left now"],
+  "rea.make": ["Приготовить по рецепту", "Приготувати за рецептом", "Paruošti pagal receptą", "Make from recipe"],
+  "f.conc": ["Концентрация", "Концентрація", "Koncentracija", "Concentration"],
+  "f.unit": ["Единица учёта", "Одиниця обліку", "Apskaitos vienetas", "Tracking unit"],
+  "f.where": ["Где хранится", "Де зберігається", "Kur laikomas", "Stored at"],
+  "f.wherePh": ["−20 °C, полка 2", "−20 °C, полиця 2", "−20 °C, 2 lentyna", "−20 °C, shelf 2"],
+  "f.low": ["Предупредить, когда меньше", "Попередити, коли менше", "Įspėti, kai mažiau nei", "Warn below"],
+  "rea.recipeH": ["Рецепт", "Рецепт", "Receptas", "Recipe"],
+  "rea.for": ["на", "на", "kiekiui", "for"],
+  "comp.name": ["Компонент", "Компонент", "Komponentas", "Component"],
+  "comp.amount": ["Кол-во", "К-сть", "Kiekis", "Amount"],
+  "comp.unit": ["Ед.", "Од.", "Vnt.", "Unit"],
+  "comp.stock": ["Сток", "Сток", "Pradinė", "Stock"],
+  "comp.final": ["Финал", "Фінал", "Galutinė", "Final"],
+  "comp.link": ["Списывать со стока", "Списувати зі стоку", "Nurašyti iš tirpalo", "Deduct from stock"],
+  "comp.namePh": ["название", "назва", "pavadinimas", "name"],
+  "comp.remove": ["Убрать компонент", "Прибрати компонент", "Pašalinti komponentą", "Remove component"],
+  "rea.noRecipe": ["Рецепт пока не вписан.", "Рецепт поки не вписано.", "Receptas dar neįrašytas.", "No recipe yet."],
+  "rea.addComp": ["+ Компонент", "+ Компонент", "+ Komponentas", "+ Component"],
+  "rea.howTo": ["Как готовить", "Як готувати", "Kaip ruošti", "How to make"],
+  "rea.howToPh": ["pH, порядок, хранение", "pH, порядок, зберігання", "pH, eiga, laikymas", "pH, order, storage"],
+  "rea.batchesH": ["Партии и инвентаризации", "Партії та інвентаризації", "Partijos ir inventorizacijos", "Batches and stock checks"],
+  "batch.add": ["Пополнение +", "Поповнення +", "Papildymas +", "Top-up +"],
+  "batch.count": ["Осталось =", "Залишилося =", "Liko =", "Left ="],
+  "batch.consumed": ["списано на эту партию: {0}", "списано на цю партію: {0}", "šiai partijai nurašyta: {0}", "deducted for this batch: {0}"],
+  "rea.batchesHint": ["Запишите, сколько приготовлено или сколько сейчас в бутылке, и остаток начнёт считаться.", "Запишіть, скільки приготовано або скільки зараз у пляшці, і залишок почне рахуватися.", "Įrašykite, kiek paruošta arba kiek dabar yra butelyje, ir likutis pradės skaičiuotis.", "Record how much you made or how much is in the bottle now, and the balance starts counting."],
+  "rea.historyH": ["История расхода", "Історія витрати", "Sunaudojimo istorija", "Usage history"],
+  "led.empty": ["Пока ни одной записи.", "Поки жодного запису.", "Kol kas nėra įrašų.", "No entries yet."],
+  "led.what": ["Что", "Що", "Kas", "What"],
+  "led.change": ["Изменение", "Зміна", "Pokytis", "Change"],
+  "led.forBatch": ["на партию {0}", "на партію {0}", "partijai {0}", "for batch {0}"],
+  "led.count": ["Инвентаризация", "Інвентаризація", "Inventorizacija", "Stock check"],
+  "led.add": ["Пополнение", "Поповнення", "Papildymas", "Top-up"],
+  "led.badUnit": ["{0}: не переводится", "{0}: не переводиться", "{0}: neperskaičiuojama", "{0}: can't convert"],
+  "led.noDate": ["без даты", "без дати", "be datos", "no date"],
+
+  cancel: ["Отмена", "Скасувати", "Atšaukti", "Cancel"],
+  "ne.title": ["Новый эксперимент", "Новий експеримент", "Naujas eksperimentas", "New experiment"],
+  "ne.titlePh": ["оставьте пустым — будет «Тип + дата»", "залиште порожнім — буде «Тип + дата»", "palikite tuščią – bus „Tipas + data“", "leave empty for “Type + date”"],
+  "ne.date": ["Дата начала", "Дата початку", "Pradžios data", "Start date"],
+  "ne.preset": ["Сразу добавить типовые этапы", "Одразу додати типові етапи", "Iš karto pridėti įprastus etapus", "Add the usual steps right away"],
+  "ne.create": ["Создать", "Створити", "Sukurti", "Create"],
+  newReagent: ["Новый реагент", "Новий реактив", "Naujas reagentas", "New reagent"],
+  "bm.addTitle": ["Новая партия или пополнение", "Нова партія або поповнення", "Nauja partija ar papildymas", "New batch or top-up"],
+  "bm.countHint": ["Остаток будет выставлен на это значение, дальше расход считается от него.", "Залишок буде встановлено на це значення, далі витрата рахується від нього.", "Likutis bus nustatytas šiai vertei, toliau sunaudojimas skaičiuojamas nuo jos.", "The balance is set to this value; usage counts down from here."],
+  "bm.addHint": ["Количество прибавится к остатку.", "Кількість додасться до залишку.", "Kiekis bus pridėtas prie likučio.", "The amount is added to the balance."],
+  "bm.amount": ["Количество, {0}", "Кількість, {0}", "Kiekis, {0}", "Amount, {0}"],
+  "bm.countPh": ["проверила бутылку", "перевірила пляшку", "patikrinau butelį", "checked the bottle"],
+  "bm.addPh": ["номер лота, кто готовил", "номер лоту, хто готував", "partijos numeris, kas ruošė", "lot number, who made it"],
+  "bm.save": ["Записать", "Записати", "Įrašyti", "Save"],
+  "rp.needBase": ["Сначала впишите, на какой объём рецепт («Рецепт на …»).", "Спершу впишіть, на який об'єм рецепт («Рецепт на …»).", "Pirmiausia įrašykite, kokiam kiekiui skirtas receptas („Receptas kiekiui …“).", "First enter the amount the recipe is for (“Recipe for …”)."],
+  "rp.needAmount": ["Введите количество.", "Введіть кількість.", "Įveskite kiekį.", "Enter an amount."],
+  "rp.need": ["Нужно", "Потрібно", "Reikia", "Needed"],
+  "rp.from": ["Списать со", "Списати з", "Nurašyti iš", "Deduct from"],
+  "rp.factor": ["Коэффициент × {0}", "Коефіцієнт × {0}", "Koeficientas × {0}", "Factor × {0}"],
+  byRecipeNote: ["по рецепту: {0}", "за рецептом: {0}", "pagal receptą: {0}", "per recipe: {0}"],
+  "mb.title": ["Приготовить: {0}", "Приготувати: {0}", "Paruošti: {0}", "Make: {0}"],
+  "mb.amount": ["Сколько готовлю, {0}", "Скільки готую, {0}", "Kiek ruošiu, {0}", "Amount to make, {0}"],
+  "mb.consume": ["Списать связанные компоненты со стоков", "Списати пов'язані компоненти зі стоків", "Nurašyti susietus komponentus iš tirpalų", "Deduct linked components from stocks"],
+  "mb.save": ["Записать партию", "Записати партію", "Įrašyti partiją", "Record batch"],
+  "mb.defNote": ["приготовлено по рецепту", "приготовано за рецептом", "paruošta pagal receptą", "made from recipe"],
+  "ru.none": ["Нет рецептов со связанными стоками. Добавьте их во вкладке «Реагенты».", "Немає рецептів із пов'язаними стоками. Додайте їх у вкладці «Реактиви».", "Nėra receptų su susietais tirpalais. Pridėkite juos skiltyje „Reagentai“.", "No recipes with linked stocks yet. Add them under “Reagents”."],
+  "ru.title": ["Списать компоненты по рецепту", "Списати компоненти за рецептом", "Nurašyti komponentus pagal receptą", "Deduct components by recipe"],
+  "ru.for": ["на {0}", "на {0}", "{0}", "for {0}"],
+  "ru.amount": ["Сколько приготовлено", "Скільки приготовано", "Kiek paruošta", "Amount made"],
+  "ru.add": ["Добавить в этап", "Додати в етап", "Pridėti į etapą", "Add to step"],
+  "imp.text": ["В файле {0} экспериментов и {1} реагентов. Записи с теми же id будут заменены, остальные сохранятся.", "У файлі {0} експериментів і {1} реактивів. Записи з тими самими id буде замінено, решта збережуться.", "Faile yra {0} eksperimentų ir {1} reagentų. Įrašai su tais pačiais id bus pakeisti, kiti liks.", "The file has {0} experiments and {1} reagents. Records with the same id will be replaced; the rest stay."],
+  "imp.done": ["Импортировано", "Імпортовано", "Importuota", "Imported"],
+  "ds.title": ["Удалить этап?", "Видалити етап?", "Ištrinti etapą?", "Delete this step?"],
+  "ds.text": ["«{0}» и записанный в нём расход реагентов будут удалены.", "«{0}» і записану в ньому витрату реактивів буде видалено.", "„{0}“ ir jame įrašytas reagentų sunaudojimas bus ištrinti.", "“{0}” and the reagent usage recorded in it will be deleted."],
+  noTitle: ["без названия", "без назви", "be pavadinimo", "untitled"],
+  "dup.toast": ["Копия создана с сегодняшней датой: поправьте количества", "Копію створено з сьогоднішньою датою: виправте кількості", "Kopija sukurta su šiandienos data: pataisykite kiekius", "Copy created with today's date: adjust the amounts"],
+  "de.title": ["Удалить эксперимент?", "Видалити експеримент?", "Ištrinti eksperimentą?", "Delete this experiment?"],
+  "de.text": ["«{0}» и весь его расход реагентов будут удалены. Это нельзя отменить.", "«{0}» і всю його витрату реактивів буде видалено. Це не можна скасувати.", "„{0}“ ir visas jo reagentų sunaudojimas bus ištrinti. To atšaukti negalima.", "“{0}” and all its reagent usage will be deleted. This can't be undone."],
+  "dr.title": ["Удалить реагент?", "Видалити реактив?", "Ištrinti reagentą?", "Delete this reagent?"],
+  "dr.text": ["«{0}» исчезнет из списка.", "«{0}» зникне зі списку.", "„{0}“ dings iš sąrašo.", "“{0}” will disappear from the list."],
+  "dr.used": ["В экспериментах есть {0} записей расхода, они останутся с пометкой «удалён».", "В експериментах є {0} записів витрати, вони залишаться з позначкою «видалено».", "Eksperimentuose yra {0} sunaudojimo įrašų, jie liks pažymėti „ištrintas“.", "Experiments have {0} usage entries for it; they stay, marked “deleted”."],
+  "db.title": ["Удалить запись партии?", "Видалити запис партії?", "Ištrinti partijos įrašą?", "Delete this batch entry?"],
+  "db.text": ["Остаток будет пересчитан.", "Залишок буде перераховано.", "Likutis bus perskaičiuotas.", "The balance will be recalculated."],
+};
+function pickLang() {
+  const saved = lsGet("labjournal.lang", null); if (saved && LANGS[saved]) return saved;
+  for (const l of (navigator.languages || [navigator.language || ""])) { const c = String(l).slice(0, 2).toLowerCase(); if (LANGS[c]) return c; }
+  return "en";
+}
+let LANG = pickLang();
+function tr(key, ...args) {
+  const row = I18N[key]; let s = row ? (row[LIDX[LANG]] ?? row[3]) : key;
+  args.forEach((a, i) => { s = s.split("{" + i + "}").join(a); });
+  return s;
+}
+const loc = () => LOCALE[LANG];
+
 /* ============================== constants ============================== */
-const SITES = { babtai: "Бабтай", kaunas: "Каунас" };
-const KINDS = { reagent: "Реагент", stock: "Сток", buffer: "Буфер", mix: "Смесь на месте" };
-const STATUS = { planned: "Запланирован", active: "В работе", done: "Завершён" };
-const UNITS = { "L":["v",1000], "mL":["v",1], "µL":["v",0.001], "kg":["m",1000], "g":["m",1], "mg":["m",0.001], "µg":["m",1e-6], "шт":["n",1], "аликв.":["a",1] };
+// Labels are getters so they always follow the chosen language.
+function labels(prefix, keys) { const o = {}; keys.forEach(k => Object.defineProperty(o, k, { enumerable: true, get: () => tr(prefix + k) })); return o; }
+const SITES = labels("site.", ["babtai", "kaunas"]);
+const KINDS = labels("kind.", ["reagent", "stock", "buffer", "mix"]);
+const STATUS = labels("st.", ["planned", "active", "done"]);
+const UNITS = { "L":["v",1000], "mL":["v",1], "µL":["v",0.001], "kg":["m",1000], "g":["m",1], "mg":["m",0.001], "µg":["m",1e-6], "pcs":["n",1], "aliq.":["a",1] };
 const UNIT_LIST = Object.keys(UNITS);
 const TYPES = {
-  crosslinking: { name: "Кросслинкинг", site: "babtai", stages: [
-    { t: "Сбор образцов в PBS + формальдегид", use: ["r_pbs", "r_fa37"] },
-    { t: "Вакуум-инфильтрация 3 × 10 мин" },
-    { t: "Квенчинг глицином", use: ["r_gly2m"] },
-    { t: "Отмывка PBS ×3 + вода ×1", use: ["r_pbs"] },
-    { t: "Сушка и заморозка, −80 °C" } ] },
-  fractionation: { name: "Фракционирование + TCA", site: "kaunas", stages: [
-    { t: "Фракционирование EXB1 → EXB2 → EXB3", use: ["r_exb1", "r_exb2", "r_exb3"] },
-    { t: "TCA/ацетон преципитация + отмывка", site: "babtai", next: 1, use: ["r_tca20", "r_acet80"] } ] },
-  tca: { name: "TCA-преципитация", site: "babtai", stages: [
-    { t: "TCA/ацетон преципитация", use: ["r_tca20"] }, { t: "Отмывка ацетоном ×2", use: ["r_acet80"] }, { t: "Растворение осадка" } ] },
-  phenol: { name: "Фенольная экстракция", site: "babtai", stages: [
-    { t: "Экстракция фенолом" }, { t: "Преципитация" }, { t: "Отмывка и растворение осадка" } ] },
-  transplant: { name: "Пересадка растений", site: "babtai", stages: [ { t: "Пересадка" } ] },
-  western: { name: "Western blot", site: "kaunas", stages: [
-    { t: "Гели и SDS-PAGE" }, { t: "Перенос и блокировка" }, { t: "Первичные АТ" }, { t: "Вторичные АТ и детекция", next: 1 } ] },
-  tryptofluo: { name: "Триптофановая флуоресценция", site: "kaunas", stages: [
-    { t: "Буферы и стандарты BSA" }, { t: "Измерение" } ] },
-  analysis: { name: "Анализ данных", site: "", stages: [ { t: "Анализ" } ] },
-  other: { name: "Другое", site: "kaunas", stages: [ { t: "Этап 1" } ] },
+  crosslinking: { site: "babtai", stages: [
+    { t: "ps.xl1", use: ["r_pbs", "r_fa37"] }, { t: "ps.xl2" }, { t: "ps.xl3", use: ["r_gly2m"] }, { t: "ps.xl4", use: ["r_pbs"] }, { t: "ps.xl5" } ] },
+  fractionation: { site: "kaunas", stages: [
+    { t: "ps.fr1", use: ["r_exb1", "r_exb2", "r_exb3"] }, { t: "ps.fr2", site: "babtai", next: 1, use: ["r_tca20", "r_acet80"] } ] },
+  tca: { site: "babtai", stages: [ { t: "ps.tca1", use: ["r_tca20"] }, { t: "ps.tca2", use: ["r_acet80"] }, { t: "ps.tca3" } ] },
+  phenol: { site: "babtai", stages: [ { t: "ps.ph1" }, { t: "ps.ph2" }, { t: "ps.ph3" } ] },
+  transplant: { site: "babtai", stages: [ { t: "ps.tr1" } ] },
+  western: { site: "kaunas", stages: [ { t: "ps.wb1" }, { t: "ps.wb2" }, { t: "ps.wb3" }, { t: "ps.wb4", next: 1 } ] },
+  tryptofluo: { site: "kaunas", stages: [ { t: "ps.tf1" }, { t: "ps.tf2" } ] },
+  analysis: { site: "", stages: [ { t: "ps.an1" } ] },
+  other: { site: "kaunas", stages: [ { t: "ps.ot1" } ] },
 };
+for (const k of Object.keys(TYPES)) Object.defineProperty(TYPES[k], "name", { get: () => tr("type." + k) });
 
 /* ============================== helpers ============================== */
 const $ = (s, el = document) => el.querySelector(s);
@@ -275,13 +566,18 @@ const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slic
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const today = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const num = (v) => { if (v === "" || v == null) return null; const n = Number(String(v).replace(",", ".").replace(/\s/g, "")); return isFinite(n) ? n : null; };
-const MONTHS = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
-const MONTHS_FULL = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-function fmtDate(d, withYear) { if (!d) return "—"; const [y, m, dd] = d.split("-"); return `${+dd} ${MONTHS[+m - 1]}${withYear ? " " + y : ""}`; }
+const LT_MONTHS = ["saus.", "vas.", "kov.", "bal.", "geg.", "birž.", "liep.", "rugp.", "rugs.", "spal.", "lapkr.", "gruod."];
+function dateObj(d) { const [y, m, dd] = d.split("-").map(Number); return new Date(y, m - 1, dd); }
+function fmtDate(d, withYear) { if (!d) return "—"; try {
+  if (LANG === "lt") { const o = dateObj(d); const m = LT_MONTHS[o.getMonth()]; return (withYear ? o.getFullYear() + " m. " : "") + m + " " + o.getDate() + " d."; } return new Intl.DateTimeFormat(loc(), withYear ? { day: "numeric", month: "short", year: "numeric" } : { day: "numeric", month: "short" }).format(dateObj(d)); } catch { return d; } }
+function fmtMonth(ym) { const s = new Intl.DateTimeFormat(loc(), { month: "long" }).format(dateObj(ym + "-01")); return s.charAt(0).toUpperCase() + s.slice(1) + " " + ym.slice(0, 4); }
+// Trailing date in a title, in any of the four languages (used when an experiment is repeated).
+const MONTH_STEMS = (() => { const st = new Set(["янв","фев","мар","апр","мая","май","июн","июл","авг","сен","окт","ноя","дек", ...LT_MONTHS.map(m => m.slice(0, 3))]); for (const l of Object.values(LOCALE)) for (let m = 0; m < 12; m++) { try { st.add(new Intl.DateTimeFormat(l, { month: "short" }).format(new Date(2026, m, 1)).replace(/\./g, "").slice(0, 3).toLowerCase()); st.add(new Intl.DateTimeFormat(l, { day: "numeric", month: "short" }).formatToParts(new Date(2026, m, 1)).find(p => p.type === "month").value.replace(/\./g, "").slice(0, 3).toLowerCase()); } catch {} } return [...st].filter(Boolean).join("|"); })();
+function stripTitleDate(t) { return t.replace(new RegExp("\\s+[\\d,\\s–-]*\\d\\s+(?:" + MONTH_STEMS + ")\\S*(?:\\s+\\d{4})?\\.?$", "i"), "").replace(new RegExp("\\s+(?:" + MONTH_STEMS + ")\\S*\\s+\\d{1,2}(?:\\s*d\\.)?$", "i"), "").trim(); }
 function fmtNum(x) {
   if (x == null || !isFinite(x)) return "—";
   const a = Math.abs(x); const d = a === 0 ? 0 : a < 1 ? 4 : a < 10 ? 3 : a < 100 ? 2 : 1;
-  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: d }).format(+x.toFixed(d));
+  return new Intl.NumberFormat(loc(), { maximumFractionDigits: d }).format(+x.toFixed(d));
 }
 function conv(amount, from, to) {
   if (from === to) return amount; const a = UNITS[from], b = UNITS[to];
@@ -308,7 +604,7 @@ function save(coll, id, delay = 600) {
   const key = coll + "/" + id; dirty.add(key);
   clearTimeout(timers.get(key));
   timers.set(key, setTimeout(() => { timers.delete(key); flush(coll, id); }, delay));
-  if (S.mode === "db") setSync("saving", "Сохраняю…");
+  if (S.mode === "db") setSync("saving", tr("sync.saving"));
 }
 async function flush(coll, id) {
   const key = coll + "/" + id;
@@ -319,12 +615,12 @@ async function flush(coll, id) {
   try {
     if (o) await DB.collection(coll).doc(id).set(clone(o));
     else await DB.collection(coll).doc(id).delete();
-    if (!timers.size && inflight.size === 1) setSync("ok", "Синхронизировано");
+    if (!timers.size && inflight.size === 1) setSync("ok", tr("sync.ok"));
   } catch (e) {
-    if (e && e.code === "invalid_argument") { S.readOnly = true; setSync("err", "Только чтение"); render(); }
-    else if (e && e.code === "quota_exceeded") { setSync("err", "Хранилище заполнено"); toast("Хранилище заполнено: удалите лишние записи."); }
+    if (e && e.code === "invalid_argument") { S.readOnly = true; setSync("err", tr("sync.readonly")); render(); }
+    else if (e && e.code === "quota_exceeded") { setSync("err", tr("sync.full")); toast(tr("toast.full")); }
     else if (e && e.code === "unavailable") { setTimeout(() => save(coll, id, 0), 1500 + Math.random() * 1500); }
-    else { setSync("err", "Ошибка сохранения"); console.warn(e); }
+    else { setSync("err", tr("sync.err")); console.warn(e); }
   } finally {
     inflight.delete(key);
     if (again.has(key)) { again.delete(key); flush(coll, id); }
@@ -347,8 +643,8 @@ const idbDel = (k) => idbDo("readwrite", st => st.delete(k));
 
 function fileStatus() {
   if (S.mode !== "local") return;
-  if (FL.handle && !FL.need) setSync(FL.error ? "err" : FL.writing || FL.timer ? "saving" : "ok", FL.error ? "Файл не сохранён" : FL.writing || FL.timer ? "Сохраняю в файл…" : "Сохранено в " + FL.name);
-  else setSync("local", "Только этот браузер");
+  if (FL.handle && !FL.need) setSync(FL.error ? "err" : FL.writing || FL.timer ? "saving" : "ok", FL.error ? tr("sync.fileErr") : FL.writing || FL.timer ? tr("sync.fileSaving") : tr("sync.fileOk", FL.name));
+  else setSync("local", tr("sync.local"));
 }
 function fileSchedule() { if (!FL.handle || FL.need) return; clearTimeout(FL.timer); FL.timer = setTimeout(() => { FL.timer = null; fileWrite(); }, 800); fileStatus(); }
 async function fileWrite() {
@@ -360,7 +656,7 @@ async function fileWrite() {
     await w.write(JSON.stringify(payload(), null, 1)); await w.close();
     FL.savedAt = Date.now(); FL.error = "";
   } catch (e) {
-    FL.error = (e && e.message) || "ошибка";
+    FL.error = (e && e.message) || "error";
     if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) { FL.need = true; render(); }
   } finally {
     FL.writing = false;
@@ -380,27 +676,27 @@ function parseJournal(txt) {
 async function fileAttach(handle, fresh) {
   FL.handle = handle; FL.name = handle.name; FL.need = false; FL.error = "";
   await idbPut("file", handle);
-  if (fresh) { await fileWrite(); render(); toast("Журнал сохраняется в " + handle.name); return; }
+  if (fresh) { await fileWrite(); render(); toast(tr("toast.fileLinked", handle.name)); return; }
   let d = null;
   try { const t = await (await handle.getFile()).text(); d = t.trim() ? parseJournal(t) : null; }
-  catch { FL.handle = null; FL.name = ""; await idbDel("file"); toast("Это не файл журнала"); render(); return; }
+  catch { FL.handle = null; FL.name = ""; await idbDel("file"); toast(tr("toast.notJournal")); render(); return; }
   if (!d) { await fileWrite(); }
   else if ((d.savedAt || 0) >= (S.savedAt || 0) || !Object.keys(S.exp).length) applyData(d);
-  else { await fileWrite(); toast("В браузере были более новые записи: сохранила их в файл"); }
+  else { await fileWrite(); toast(tr("toast.newerLocal")); }
   render(); fileStatus();
 }
 async function fileOpen(confirmed) {
   if (!confirmed && !FL.handle && Object.keys(S.exp).length) {
-    confirmBox("Открыть файл журнала?", "Записи, которые сейчас в этом браузере, заменятся содержимым файла. Если они нужны, сначала нажмите «Экспорт».", "Выбрать файл", () => fileOpen(true));
+    confirmBox(tr("file.confirmTitle"), esc(tr("file.confirmText")), tr("file.pick"), () => fileOpen(true));
     return;
   }
   if (!FSA) { $("#openFile").click(); return; }
-  let h; try { [h] = await window.showOpenFilePicker({ id: "labjournal", types: [{ description: "Журнал (JSON)", accept: { "application/json": [".json"] } }] }); } catch { return; }
-  try { if ((await h.requestPermission({ mode: "readwrite" })) !== "granted") { toast("Без разрешения на запись файл не будет обновляться"); return; } } catch {}
+  let h; try { [h] = await window.showOpenFilePicker({ id: "labjournal", types: [{ description: tr("file.typeDesc"), accept: { "application/json": [".json"] } }] }); } catch { return; }
+  try { if ((await h.requestPermission({ mode: "readwrite" })) !== "granted") { toast(tr("toast.noPerm")); return; } } catch {}
   S.savedAt = 0; await fileAttach(h, false);
 }
 async function fileNew() {
-  let h; try { h = await window.showSaveFilePicker({ id: "labjournal", suggestedName: "lab-journal.json", types: [{ description: "Журнал (JSON)", accept: { "application/json": [".json"] } }] }); } catch { return; }
+  let h; try { h = await window.showSaveFilePicker({ id: "labjournal", suggestedName: "lab-journal.json", types: [{ description: tr("file.typeDesc"), accept: { "application/json": [".json"] } }] }); } catch { return; }
   await fileAttach(h, true);
 }
 async function fileReconnect() {
@@ -413,10 +709,10 @@ function saveDownload(name, text) {
 }
 function fileBanner() {
   if (S.mode !== "local") return "";
-  if (FL.handle && !FL.need) return `<div class="filebar"><span>Журнал сохраняется в файл <b>${esc(FL.name)}</b> на этом компьютере.</span><span class="row-actions"><button class="btn sm ghost" type="button" data-act="file-open">Открыть другой</button><button class="btn sm ghost" type="button" data-act="file-unlink">Отвязать</button></span></div>`;
-  if (FL.handle && FL.need) return `<div class="filebar warn"><span>Браузер просит заново разрешить запись в <b>${esc(FL.name)}</b>.</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-reconnect">Продолжить с ${esc(FL.name)}</button><button class="btn sm ghost" type="button" data-act="file-open">Другой файл</button></span></div>`;
-  if (FSA) return `<div class="filebar warn"><span>Сейчас записи только в этом браузере. Откройте свой файл журнала, и каждое изменение будет сохраняться в него.</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-open">Открыть файл .json</button><button class="btn sm" type="button" data-act="file-new">Создать новый файл</button></span></div>`;
-  return `<div class="filebar warn"><span>В этом браузере файл нельзя обновлять напрямую: откройте файл журнала, а после работы сохраните его копию.</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-open">Открыть файл .json</button><button class="btn sm" type="button" data-act="file-save">Сохранить файл</button></span></div>`;
+  if (FL.handle && !FL.need) return `<div class="filebar"><span>${tr("file.linked", esc(FL.name))}</span><span class="row-actions"><button class="btn sm ghost" type="button" data-act="file-open">${tr("file.openOther")}</button><button class="btn sm ghost" type="button" data-act="file-unlink">${tr("file.unlink")}</button></span></div>`;
+  if (FL.handle && FL.need) return `<div class="filebar warn"><span>${tr("file.needPerm", esc(FL.name))}</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-reconnect">${tr("file.continue", esc(FL.name))}</button><button class="btn sm ghost" type="button" data-act="file-open">${tr("file.otherFile")}</button></span></div>`;
+  if (FSA) return `<div class="filebar warn"><span>${tr("file.browserOnly")}</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-open">${tr("file.open")}</button><button class="btn sm" type="button" data-act="file-new">${tr("file.new")}</button></span></div>`;
+  return `<div class="filebar warn"><span>${tr("file.noFsa")}</span><span class="row-actions"><button class="btn sm primary" type="button" data-act="file-open">${tr("file.open")}</button><button class="btn sm" type="button" data-act="file-save">${tr("file.save")}</button></span></div>`;
 }
 
 async function startLocal() {
@@ -438,7 +734,7 @@ async function init() {
   try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch { downloads = null; }
   if (!db) { startLocal(); return; }
   DB = db; S.mode = "db"; const got = { experiments: false, reagents: false };
-  const timeout = setTimeout(() => { if (!S.ready) { setSync("err", "Нет связи"); S.ready = true; S.slow = true; render(); } }, 10000);
+  const timeout = setTimeout(() => { if (!S.ready) { setSync("err", tr("sync.offline")); S.ready = true; S.slow = true; render(); } }, 10000);
   for (const coll of ["experiments", "reagents"]) {
     DB.collection(coll).onSnapshot((snap) => {
       const m = mapOf(coll); let openTouched = false;
@@ -449,10 +745,10 @@ async function init() {
         if (Drawer.coll === coll && Drawer.id === id) openTouched = true;
       }
       if (!snap.metadata.fromCache) { got[coll] = true; }
-      if (got.experiments && got.reagents) { clearTimeout(timeout); S.ready = true; S.slow = false; if (!timers.size && !inflight.size) setSync("ok", "Синхронизировано"); }
+      if (got.experiments && got.reagents) { clearTimeout(timeout); S.ready = true; S.slow = false; if (!timers.size && !inflight.size) setSync("ok", tr("sync.ok")); }
       else if (!S.ready && snap.size) S.ready = true;
       render(); if (openTouched) Drawer.remoteChanged();
-    }, (e) => { clearTimeout(timeout); setSync("err", e && e.code === "revoked" ? "Доступ закрыт" : "Нет связи"); S.ready = true; render(); });
+    }, (e) => { clearTimeout(timeout); setSync("err", e && e.code === "revoked" ? tr("sync.revoked") : tr("sync.offline")); S.ready = true; render(); });
   }
 }
 
@@ -490,6 +786,21 @@ function lastUse(L) { for (let i = L.events.length - 1; i >= 0; i--) if (L.event
 /* ============================== UI state & render ============================== */
 const UI = { tab: "journal", site: lsGet("labjournal.site", "all"), q: "", type: "", status: "", kind: "", lowOnly: false };
 
+function applyStaticAll() {
+  document.documentElement.lang = LANG;
+  document.title = tr("appName") + " · " + SITES.babtai + " · " + SITES.kaunas;
+  $$("[data-i-key]").forEach(el => { el.textContent = tr(el.dataset.iKey); });
+  $$("[data-i-aria]").forEach(el => el.setAttribute("aria-label", tr(el.dataset.iAria)));
+  const sel = $("#lang"); if (sel && !sel.options.length) sel.innerHTML = Object.entries(LANGS).map(([k, n]) => `<option value="${k}">${n}</option>`).join("");
+  if (sel) sel.value = LANG;
+}
+function setLang(l) {
+  if (!LANGS[l] || l === LANG) return;
+  LANG = l; lsSet("labjournal.lang", l); applyStaticAll();
+  const st = $("#sync").dataset.s;
+  if (S.mode === "local") fileStatus(); else if (st === "ok") setSync("ok", tr("sync.ok")); else if (!S.ready) setSync("", tr("connecting"));
+  render(); if (Drawer.coll) Drawer.render();
+}
 function render() {
   const h = (location.hash || "#journal").slice(1); UI.tab = h === "reagents" ? "reagents" : "journal";
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === UI.tab ? "page" : "false"));
@@ -497,10 +808,10 @@ function render() {
   const main = $("#main");
   const keepFocus = document.activeElement && main.contains(document.activeElement) ? document.activeElement.id : null;
   const sel = keepFocus ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
-  if (!S.ready) { main.innerHTML = `<div class="empty">Загружаю журнал…</div>`; return; }
-  main.innerHTML = (S.readOnly ? `<div class="banner">Здесь можно только смотреть: изменения не сохраняются для вашего уровня доступа.</div>` : "")
+  if (!S.ready) { main.innerHTML = `<div class="empty">${tr("loading")}</div>`; return; }
+  main.innerHTML = (S.readOnly ? `<div class="banner">${tr("banner.readonly")}</div>` : "")
     + fileBanner()
-    + (S.slow ? `<div class="banner">Хранилище пока не отвечает. Показанные данные могут быть неполными.</div>` : "")
+    + (S.slow ? `<div class="banner">${tr("banner.slow")}</div>` : "")
     + (UI.tab === "journal" ? viewJournal() : viewReagents());
   if (keepFocus) { const el = document.getElementById(keepFocus); if (el) { el.focus(); try { el.setSelectionRange(sel[0], sel[1]); } catch {} } }
 }
@@ -520,30 +831,30 @@ function viewJournal() {
   const thisMonth = list.filter(x => (x.e.startDate || "").slice(0, 7) === month).length;
   const stageDays = new Set(); list.forEach(x => (x.e.stages || []).forEach(s => s.date && (UI.site === "all" || s.site === UI.site) && stageDays.add(s.date)));
   let html = `<div class="toolbar">
-    <button class="btn primary" type="button" data-act="new-exp" ${S.readOnly ? "disabled" : ""}>+ Эксперимент</button>
-    <input type="search" id="q" placeholder="Поиск по названию, образцам, заметкам" value="${esc(UI.q)}" aria-label="Поиск">
-    <select id="fType" aria-label="Тип"><option value="">Все типы</option>${Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${UI.type === k ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
-    <select id="fStatus" aria-label="Статус"><option value="">Любой статус</option>${Object.entries(STATUS).map(([k, t]) => `<option value="${k}" ${UI.status === k ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <button class="btn primary" type="button" data-act="new-exp" ${S.readOnly ? "disabled" : ""}>${tr("j.new")}</button>
+    <input type="search" id="q" placeholder="${tr("j.search")}" value="${esc(UI.q)}" aria-label="${tr("search.aria")}">
+    <select id="fType" aria-label="${tr("f.type")}"><option value="">${tr("j.allTypes")}</option>${Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${UI.type === k ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
+    <select id="fStatus" aria-label="${tr("f.status")}"><option value="">${tr("j.anyStatus")}</option>${Object.entries(STATUS).map(([k, t]) => `<option value="${k}" ${UI.status === k ? "selected" : ""}>${t}</option>`).join("")}</select>
     <span class="spacer"></span>
-    <button class="btn ghost sm" type="button" data-act="export">Экспорт</button>
-    <button class="btn ghost sm" type="button" data-act="import" ${S.readOnly ? "disabled" : ""}>Импорт</button>
+    <button class="btn ghost sm" type="button" data-act="export">${tr("export")}</button>
+    <button class="btn ghost sm" type="button" data-act="import" ${S.readOnly ? "disabled" : ""}>${tr("import")}</button>
   </div>
   <div class="stats">
-    <div class="stat"><b>${list.length}</b><span>экспериментов${UI.site !== "all" ? " · " + SITES[UI.site] : ""}</span></div>
-    <div class="stat"><b>${active.length}</b><span>в работе или в плане</span></div>
-    <div class="stat"><b>${stageDays.size}</b><span>рабочих дней в журнале</span></div>
-    <div class="stat ${allLow ? "warn" : ""}"><b>${allLow}</b><span><a class="lnk" href="#reagents" data-act="low-reagents">реагентов на исходе</a></span></div>
+    <div class="stat"><b>${list.length}</b><span>${tr("stat.exps")}${UI.site !== "all" ? " · " + SITES[UI.site] : ""}</span></div>
+    <div class="stat"><b>${active.length}</b><span>${tr("stat.active")}</span></div>
+    <div class="stat"><b>${stageDays.size}</b><span>${tr("stat.days")}</span></div>
+    <div class="stat ${allLow ? "warn" : ""}"><b>${allLow}</b><span><a class="lnk" href="#reagents" data-act="low-reagents">${tr("stat.low")}</a></span></div>
   </div>`;
   if (!Object.keys(S.exp).length) {
-    return html + `<div class="empty">Пока нет ни одного эксперимента. ${S.mode === "local" ? "Откройте свой файл журнала (lab-journal.json) или нажмите «+ Эксперимент»." : "Нажмите «+ Эксперимент» или загрузите резервную копию через «Импорт»."}</div>`;
+    return html + `<div class="empty">${tr(S.mode === "local" ? "j.empty.local" : "j.empty.db")}</div>`;
   }
-  if (!list.length) return html + `<div class="empty">Ничего не нашлось с такими фильтрами.</div>`;
-  if (active.length && !UI.status) html += `<section class="block"><div class="block-h">Сейчас в работе <span class="n">${active.length}</span></div><div class="cards">${active.map(cardExp).join("")}</div></section>`;
+  if (!list.length) return html + `<div class="empty">${tr("j.nothing")}</div>`;
+  if (active.length && !UI.status) html += `<section class="block"><div class="block-h">${tr("j.activeH")} <span class="n">${active.length}</span></div><div class="cards">${active.map(cardExp).join("")}</div></section>`;
   const rest = UI.status ? list : list.filter(x => x.e.status === "done");
   const groups = {};
   rest.forEach(x => { const k = (x.e.startDate || "").slice(0, 7) || "—"; (groups[k] = groups[k] || []).push(x); });
   for (const k of Object.keys(groups).sort().reverse()) {
-    const label = k === "—" ? "Без даты" : `${MONTHS_FULL[+k.slice(5, 7) - 1]} ${k.slice(0, 4)}`;
+    const label = k === "—" ? tr("j.noDate") : fmtMonth(k);
     html += `<section class="block"><div class="block-h">${label} <span class="n">${groups[k].length}</span></div><div class="cards">${groups[k].map(cardExp).join("")}</div></section>`;
   }
   return html;
@@ -555,10 +866,10 @@ function cardExp({ id, e, sites }) {
   const t = TYPES[e.type];
   return `<button type="button" class="card ${siteClass(sites)}" data-open-exp="${esc(id)}">
     <div class="d"><b>${fmtDate(d1)}</b>${d2 ? "→ " + fmtDate(d2) : esc((d1 || "").slice(0, 4))}</div>
-    <div><h3>${esc(e.title || "Без названия")}</h3>
-      <div class="meta"><span class="tag st-${esc(e.status)}">${STATUS[e.status] || ""}</span>${t ? `<span class="tag">${esc(t.name)}</span>` : ""}${sites.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("")}${uses ? `<span class="tag">реагентов: ${uses}</span>` : ""}</div>
+    <div><h3>${esc(e.title || tr("untitled"))}</h3>
+      <div class="meta"><span class="tag st-${esc(e.status)}">${STATUS[e.status] || ""}</span>${t ? `<span class="tag">${esc(t.name)}</span>` : ""}${sites.map(s => `<span class="tag ${s}">${SITES[s]}</span>`).join("")}${uses ? `<span class="tag">${tr("card.reagents", uses)}</span>` : ""}</div>
       ${e.samples ? `<div class="sub">${esc(e.samples)}</div>` : ""}</div>
-    <div class="prog"><div class="bar"><i style="width:${st.length ? Math.round(done / st.length * 100) : 0}%"></i></div><small>${done}/${st.length} этапов</small></div>
+    <div class="prog"><div class="bar"><i style="width:${st.length ? Math.round(done / st.length * 100) : 0}%"></i></div><small>${tr("card.stages", done, st.length)}</small></div>
   </button>`;
 }
 
@@ -571,24 +882,24 @@ function viewReagents() {
     .filter(x => !UI.lowOnly || isLow(x.r, x.L.balance))
     .sort((a, b) => (a.r.site || "").localeCompare(b.r.site || "") || (a.r.kind === "mix") - (b.r.kind === "mix") || a.r.name.localeCompare(b.r.name, "ru"));
   let html = `<div class="toolbar">
-    <button class="btn primary" type="button" data-act="new-rea" ${S.readOnly ? "disabled" : ""}>+ Реагент или сток</button>
-    <input type="search" id="q" placeholder="Поиск по названию, компонентам" value="${esc(UI.q)}" aria-label="Поиск">
-    <select id="fKind" aria-label="Вид"><option value="">Все виды</option>${Object.entries(KINDS).map(([k, t]) => `<option value="${k}" ${UI.kind === k ? "selected" : ""}>${t}</option>`).join("")}</select>
-    <label class="check"><input type="checkbox" id="fLow" ${UI.lowOnly ? "checked" : ""}> Только заканчивающиеся</label>
+    <button class="btn primary" type="button" data-act="new-rea" ${S.readOnly ? "disabled" : ""}>${tr("r.new")}</button>
+    <input type="search" id="q" placeholder="${tr("r.search")}" value="${esc(UI.q)}" aria-label="${tr("search.aria")}">
+    <select id="fKind" aria-label="${tr("th.kind")}"><option value="">${tr("r.allKinds")}</option>${Object.entries(KINDS).map(([k, t]) => `<option value="${k}" ${UI.kind === k ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <label class="check"><input type="checkbox" id="fLow" ${UI.lowOnly ? "checked" : ""}> ${tr("r.lowOnly")}</label>
   </div>`;
-  if (!rows.length) return html + `<div class="empty">${Object.keys(S.rea).length ? "Ничего не нашлось." : "Пока нет реагентов. Добавьте первый."}</div>`;
-  html += `<div class="tbl-wrap"><table><thead><tr><th>Название</th><th class="hide-m">Вид</th><th class="hide-m">Где</th><th class="r">Остаток</th><th class="hide-m">Последний расход</th></tr></thead><tbody>`;
+  if (!rows.length) return html + `<div class="empty">${Object.keys(S.rea).length ? tr("r.nothing") : tr("r.empty")}</div>`;
+  html += `<div class="tbl-wrap"><table><thead><tr><th>${tr("th.name")}</th><th class="hide-m">${tr("th.kind")}</th><th class="hide-m">${tr("th.where")}</th><th class="r">${tr("th.left")}</th><th class="hide-m">${tr("th.lastUse")}</th></tr></thead><tbody>`;
   for (const { id, r, L } of rows) {
     const lu = lastUse(L); const low = isLow(r, L.balance);
-    const balTxt = r.kind === "mix" ? `<span class="small">готовится на месте</span>` : L.balance == null ? `<span class="small">не учтён</span>` : `<span class="num">${fmtNum(L.balance)} ${esc(r.unit)}</span>${low ? ` <span class="tag low">мало</span>` : ""}`;
+    const balTxt = r.kind === "mix" ? `<span class="small">${tr("r.mixShort")}</span>` : L.balance == null ? `<span class="small">${tr("r.untracked")}</span>` : `<span class="num">${fmtNum(L.balance)} ${esc(r.unit)}</span>${low ? ` <span class="tag low">${tr("r.low")}</span>` : ""}`;
     html += `<tr class="click" data-open-rea="${esc(id)}" tabindex="0">
-      <td><span class="site-dot ${esc(r.site)}"></span><span class="rname">${esc(r.name)}</span>${r.conc && !r.name.includes(r.conc) ? `<span class="small">${esc(r.conc)}</span>` : ""}${(r.recipe?.components || []).length ? `<span class="small">рецепт: ${r.recipe.components.length} компонент.</span>` : ""}</td>
+      <td><span class="site-dot ${esc(r.site)}"></span><span class="rname">${esc(r.name)}</span>${r.conc && !r.name.includes(r.conc) ? `<span class="small">${esc(r.conc)}</span>` : ""}${(r.recipe?.components || []).length ? `<span class="small">${tr("r.recipeN", r.recipe.components.length)}</span>` : ""}</td>
       <td class="hide-m">${KINDS[r.kind] || ""}</td>
       <td class="hide-m">${SITES[r.site] || "—"}${r.location ? `<span class="small">${esc(r.location)}</span>` : ""}</td>
-      <td class="r">${balTxt}<span class="small">израсходовано: ${fmtNum(L.used)} ${esc(r.unit)}</span></td>
+      <td class="r">${balTxt}<span class="small">${tr("r.usedN", fmtNum(L.used) + " " + esc(r.unit))}</span></td>
       <td class="hide-m">${lu ? `<span class="num">${fmtDate(lu.date)}</span> · ${fmtNum(lu.q)} ${esc(r.unit)}<span class="small">${esc(lu.ref.title || "")}</span>` : "—"}</td></tr>`;
   }
-  return html + `</tbody></table></div><p class="hint">Остаток считается от первой записанной партии или инвентаризации: всё, что было использовано до неё, видно в истории, но в остаток не входит.</p>`;
+  return html + `</tbody></table></div><p class="hint">${tr("r.hint")}</p>`;
 }
 
 /* ============================== drawer ============================== */
@@ -599,10 +910,10 @@ const Drawer = {
   doc() { return this.coll ? mapOf(this.coll)[this.id] : null; },
   render(keepScroll = true) {
     const body = $("#drBody"); const top = body.scrollTop; const o = this.doc();
-    if (!o) { if (this.coll) { body.innerHTML = `<div class="empty">Запись удалена.</div>`; $("#drActions").innerHTML = ""; } return; }
+    if (!o) { if (this.coll) { body.innerHTML = `<div class="empty">${tr("dr.deleted")}</div>`; $("#drActions").innerHTML = ""; } return; }
     const ae = document.activeElement; const fid = ae && body.contains(ae) ? ae.id : null;
-    if (this.coll === "experiments") { $("#drTitle").textContent = "Эксперимент"; body.innerHTML = viewExp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm" type="button" data-act="dup-exp">Повторить</button><button class="btn sm danger" type="button" data-act="del-exp">Удалить</button>`; }
-    else { $("#drTitle").textContent = KINDS[o.kind] || "Реагент"; body.innerHTML = viewRea(this.id, o); $("#drActions").innerHTML = `<button class="btn sm danger" type="button" data-act="del-rea">Удалить</button>`; }
+    if (this.coll === "experiments") { $("#drTitle").textContent = tr("dr.exp"); body.innerHTML = viewExp(this.id, o); $("#drActions").innerHTML = `<button class="btn sm" type="button" data-act="dup-exp">${tr("dup")}</button><button class="btn sm danger" type="button" data-act="del-exp">${tr("del")}</button>`; }
+    else { $("#drTitle").textContent = KINDS[o.kind] || tr("kind.reagent"); body.innerHTML = viewRea(this.id, o); $("#drActions").innerHTML = `<button class="btn sm danger" type="button" data-act="del-rea">${tr("del")}</button>`; }
     if (S.readOnly) { $$("input,select,textarea,button[data-act]", body).forEach(el => el.disabled = true); $$("#drActions button").forEach(b => b.disabled = true); }
     if (keepScroll) body.scrollTop = top;
     if (fid) { const el = document.getElementById(fid); if (el) el.focus({ preventScroll: true }); }
@@ -617,13 +928,13 @@ const Drawer = {
   },
 };
 
-function siteOptions(v, allowNone) { return (allowNone ? `<option value="" ${!v ? "selected" : ""}>— без лаборатории</option>` : "") + Object.entries(SITES).map(([k, t]) => `<option value="${k}" ${v === k ? "selected" : ""}>${t}</option>`).join(""); }
+function siteOptions(v, allowNone) { return (allowNone ? `<option value="" ${!v ? "selected" : ""}>${tr("site.none")}</option>` : "") + Object.entries(SITES).map(([k, t]) => `<option value="${k}" ${v === k ? "selected" : ""}>${t}</option>`).join(""); }
 function unitOptions(v) { const list = UNIT_LIST.includes(v) || !v ? UNIT_LIST : [v, ...UNIT_LIST]; return list.map(u => `<option ${u === v ? "selected" : ""}>${esc(u)}</option>`).join(""); }
 function reagentOptions(v, preferSite, includeMix) {
   const ent = Object.entries(S.rea).filter(([, r]) => includeMix || r.kind !== "mix").sort((a, b) => a[1].name.localeCompare(b[1].name, "ru"));
   const groups = [[preferSite, ent.filter(([, r]) => r.site === preferSite)], ...Object.keys(SITES).filter(s => s !== preferSite).map(s => [s, ent.filter(([, r]) => r.site === s)]), ["", ent.filter(([, r]) => !SITES[r.site])]];
-  return `<option value="">— выберите —</option>` + groups.filter(g => g[1].length).map(([s, items]) => `<optgroup label="${s ? SITES[s] : "Без лаборатории"}">${items.map(([id, r]) => `<option value="${esc(id)}" ${id === v ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")
-    + (v && !S.rea[v] ? `<option value="${esc(v)}" selected>(удалён)</option>` : "");
+  return `<option value="">${tr("pick")}</option>` + groups.filter(g => g[1].length).map(([s, items]) => `<optgroup label="${s ? SITES[s] : tr("site.noneGroup")}">${items.map(([id, r]) => `<option value="${esc(id)}" ${id === v ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")
+    + (v && !S.rea[v] ? `<option value="${esc(v)}" selected>${tr("removedOpt")}</option>` : "");
 }
 function fld(id, path, val, attrs = "") { return `<input type="text" id="${id}" data-f="${path}" value="${esc(val ?? "")}" ${attrs}>`; }
 
@@ -632,118 +943,118 @@ function viewExp(id, e) {
   const others = Object.entries(S.exp).filter(([k]) => k !== id).sort((a, b) => (b[1].startDate || "").localeCompare(a[1].startDate || ""));
   const parent = e.parentId && S.exp[e.parentId];
   const children = Object.entries(S.exp).filter(([, x]) => x.parentId === id);
-  let h = `<input type="text" class="title-in" id="e-title" data-f="title" value="${esc(e.title)}" placeholder="Название эксперимента" aria-label="Название">
+  let h = `<input type="text" class="title-in" id="e-title" data-f="title" value="${esc(e.title)}" placeholder="${tr("e.titlePh")}" aria-label="${tr("th.name")}">
   <div class="grid2">
-    <label class="f"><span>Тип</span><select id="e-type" data-f="type">${Object.entries(TYPES).map(([k, x]) => `<option value="${k}" ${e.type === k ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
-    <label class="f"><span>Статус</span><select id="e-status" data-f="status">${Object.entries(STATUS).map(([k, x]) => `<option value="${k}" ${e.status === k ? "selected" : ""}>${x}</option>`).join("")}</select></label>
-    <label class="f"><span>Начало</span><input type="date" id="e-start" data-f="startDate" value="${esc(e.startDate)}"></label>
-    <label class="f"><span>Конец</span><input type="date" id="e-end" data-f="endDate" value="${esc(e.endDate)}"></label>
+    <label class="f"><span>${tr("f.type")}</span><select id="e-type" data-f="type">${Object.entries(TYPES).map(([k, x]) => `<option value="${k}" ${e.type === k ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("f.status")}</span><select id="e-status" data-f="status">${Object.entries(STATUS).map(([k, x]) => `<option value="${k}" ${e.status === k ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("f.start")}</span><input type="date" id="e-start" data-f="startDate" value="${esc(e.startDate)}"></label>
+    <label class="f"><span>${tr("f.end")}</span><input type="date" id="e-end" data-f="endDate" value="${esc(e.endDate)}"></label>
   </div>
-  <label class="f"><span>Образцы</span><textarea id="e-samples" data-f="samples" rows="2" placeholder="Сорт, обработка, номера проб, навески">${esc(e.samples)}</textarea></label>
+  <label class="f"><span>${tr("f.samples")}</span><textarea id="e-samples" data-f="samples" rows="2" placeholder="${tr("f.samplesPh")}">${esc(e.samples)}</textarea></label>
   <div class="grid2">
-    <label class="f"><span>Образцы взяты из эксперимента</span><select id="e-parent" data-f="parentId"><option value="">—</option>${others.map(([k, x]) => `<option value="${esc(k)}" ${e.parentId === k ? "selected" : ""}>${fmtDate(x.startDate, true)} · ${esc(x.title)}</option>`).join("")}</select></label>
-    <label class="f"><span>Файл отчёта</span>${fld("e-file", "sourceFile", e.sourceFile, 'placeholder="например crosslinking_26_11_09.docx"')}</label>
+    <label class="f"><span>${tr("f.parent")}</span><select id="e-parent" data-f="parentId"><option value="">—</option>${others.map(([k, x]) => `<option value="${esc(k)}" ${e.parentId === k ? "selected" : ""}>${fmtDate(x.startDate, true)} · ${esc(x.title)}</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("f.file")}</span>${fld("e-file", "sourceFile", e.sourceFile, 'placeholder="' + tr("f.filePh") + '"')}</label>
   </div>
-  ${parent || children.length ? `<div class="hint">${parent ? `Образцы из: <a class="lnk" data-open-exp="${esc(e.parentId)}">${esc(parent.title)}</a>. ` : ""}${children.length ? `Образцы использованы в: ${children.map(([k, x]) => `<a class="lnk" data-open-exp="${esc(k)}">${esc(x.title)}</a>`).join(", ")}.` : ""}</div>` : ""}
-  <label class="f"><span>Цель и итоги</span><textarea id="e-notes" data-f="notes" rows="3">${esc(e.notes)}</textarea></label>
-  <div class="sec-h"><h3>Этапы · ${(e.stages || []).length}</h3><button class="btn sm" type="button" data-act="add-stage">+ Этап</button></div>`;
+  ${parent || children.length ? `<div class="hint">${parent ? `${tr("e.from")} <a class="lnk" data-open-exp="${esc(e.parentId)}">${esc(parent.title)}</a>. ` : ""}${children.length ? `${tr("e.usedIn")} ${children.map(([k, x]) => `<a class="lnk" data-open-exp="${esc(k)}">${esc(x.title)}</a>`).join(", ")}.` : ""}</div>` : ""}
+  <label class="f"><span>${tr("f.notes")}</span><textarea id="e-notes" data-f="notes" rows="3">${esc(e.notes)}</textarea></label>
+  <div class="sec-h"><h3>${tr("e.stagesH")} · ${(e.stages || []).length}</h3><button class="btn sm" type="button" data-act="add-stage">${tr("e.addStage")}</button></div>`;
   (e.stages || []).forEach((s, i) => { h += viewStage(id, e, s, i); });
-  if (!(e.stages || []).length) h += `<div class="empty">Нет этапов. ${t && t.stages.length ? `<a class="lnk" data-act="preset-stages">Добавить этапы для «${esc(t.name)}»</a>` : ""}</div>`;
-  h += `<div class="sec-h"><h3>Заметки по ходу</h3></div>
-  <div class="log">${(e.log || []).slice().reverse().map((l) => `<div class="log-item"><time>${esc(new Date(l.ts).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</time><div>${esc(l.text).replace(/\n/g, "<br>")}</div><button class="icon-btn" type="button" data-act="del-log" data-ts="${l.ts}" aria-label="Удалить заметку">✕</button></div>`).join("") || `<div class="hint">Быстрые записи с временем: что заметили, что пошло не так, идеи на следующий раз.</div>`}</div>
-  <div class="row-actions" style="flex-wrap:nowrap"><input type="text" id="logText" placeholder="Новая заметка…" aria-label="Новая заметка"><button class="btn" type="button" data-act="add-log">Добавить</button></div>`;
+  if (!(e.stages || []).length) h += `<div class="empty">${tr("e.noStages")} ${t && t.stages.length ? `<a class="lnk" data-act="preset-stages">${tr("e.presetLink", esc(t.name))}</a>` : ""}</div>`;
+  h += `<div class="sec-h"><h3>${tr("e.logH")}</h3></div>
+  <div class="log">${(e.log || []).slice().reverse().map((l) => `<div class="log-item"><time>${esc(new Date(l.ts).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</time><div>${esc(l.text).replace(/\n/g, "<br>")}</div><button class="icon-btn" type="button" data-act="del-log" data-ts="${l.ts}" aria-label="${tr("e.delNote")}">✕</button></div>`).join("") || `<div class="hint">${tr("e.logHint")}</div>`}</div>
+  <div class="row-actions" style="flex-wrap:nowrap"><input type="text" id="logText" placeholder="${tr("e.logPh")}" aria-label="${tr("e.logPh")}"><button class="btn" type="button" data-act="add-log">${tr("e.logAdd")}</button></div>`;
   return h;
 }
 function viewStage(eid, e, s, i) {
   const p = `stages.${i}`;
   return `<div class="stage ${esc(s.site)} ${s.done ? "done" : ""}">
     <div class="stage-top"><label class="check"><input type="checkbox" id="s-${s.id}-done" data-f="${p}.done" ${s.done ? "checked" : ""}><span class="stage-num">${i + 1}</span></label>
-      <input type="text" id="s-${s.id}-t" data-f="${p}.title" value="${esc(s.title)}" placeholder="Что делали" aria-label="Название этапа">
-      <span class="row-actions"><button class="icon-btn" type="button" data-act="stage-up" data-i="${i}" aria-label="Выше" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" type="button" data-act="del-stage" data-i="${i}" aria-label="Удалить этап">✕</button></span></div>
+      <input type="text" id="s-${s.id}-t" data-f="${p}.title" value="${esc(s.title)}" placeholder="${tr("s.titlePh")}" aria-label="${tr("s.titleAria")}">
+      <span class="row-actions"><button class="icon-btn" type="button" data-act="stage-up" data-i-key="${i}" aria-label="${tr("s.up")}" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" type="button" data-act="del-stage" data-i-key="${i}" aria-label="${tr("s.del")}">✕</button></span></div>
     <div class="stage-row2">
-      <label class="f"><span>Дата</span><input type="date" id="s-${s.id}-d" data-f="${p}.date" value="${esc(s.date)}"></label>
-      <label class="f"><span>Лаборатория</span><select id="s-${s.id}-site" data-f="${p}.site" data-rerender="1">${siteOptions(s.site, true)}</select></label>
-      <label class="f full"><span>Заметки</span><textarea id="s-${s.id}-n" data-f="${p}.notes" rows="1" placeholder="Наблюдения, отклонения от протокола">${esc(s.notes)}</textarea></label>
+      <label class="f"><span>${tr("f.date")}</span><input type="date" id="s-${s.id}-d" data-f="${p}.date" value="${esc(s.date)}"></label>
+      <label class="f"><span>${tr("f.lab")}</span><select id="s-${s.id}-site" data-f="${p}.site" data-rerender="1">${siteOptions(s.site, true)}</select></label>
+      <label class="f full"><span>${tr("f.stageNotes")}</span><textarea id="s-${s.id}-n" data-f="${p}.notes" rows="1" placeholder="${tr("s.notesPh")}">${esc(s.notes)}</textarea></label>
     </div>
-    <div class="usages"><div class="usages-h"><span>Использовано</span><span class="row-actions"><button class="btn sm" type="button" data-act="add-usage" data-i="${i}">+ Реагент</button><button class="btn sm ghost" type="button" data-act="recipe-usage" data-i="${i}">+ По рецепту</button></span></div>
+    <div class="usages"><div class="usages-h"><span>${tr("s.used")}</span><span class="row-actions"><button class="btn sm" type="button" data-act="add-usage" data-i-key="${i}">${tr("s.addReagent")}</button><button class="btn sm ghost" type="button" data-act="recipe-usage" data-i-key="${i}">${tr("s.byRecipe")}</button></span></div>
       ${(s.usages || []).map((u, j) => `<div class="usage">
-        <select id="u-${s.id}-${j}-r" data-f="${p}.usages.${j}.reagentId" data-rerender="1" aria-label="Реагент">${reagentOptions(u.reagentId, s.site)}</select>
-        <input type="text" inputmode="decimal" id="u-${s.id}-${j}-a" data-f="${p}.usages.${j}.amount" data-num="1" value="${esc(u.amount ?? "")}" placeholder="кол-во" aria-label="Количество">
-        <select id="u-${s.id}-${j}-u" data-f="${p}.usages.${j}.unit" aria-label="Единица">${unitOptions(u.unit)}</select>
-        <input type="text" class="note" id="u-${s.id}-${j}-n" data-f="${p}.usages.${j}.note" value="${esc(u.note)}" placeholder="комментарий" aria-label="Комментарий">
-        <button class="icon-btn" type="button" data-act="del-usage" data-i="${i}" data-j="${j}" aria-label="Убрать">✕</button>
-        ${calcUsage(eid, s.id, j)}</div>`).join("") || `<div class="hint">Добавьте реагенты, и расход появится во вкладке «Реагенты и стоки».</div>`}
+        <select id="u-${s.id}-${j}-r" data-f="${p}.usages.${j}.reagentId" data-rerender="1" aria-label="${tr("u.reagent")}">${reagentOptions(u.reagentId, s.site)}</select>
+        <input type="text" inputmode="decimal" id="u-${s.id}-${j}-a" data-f="${p}.usages.${j}.amount" data-num="1" value="${esc(u.amount ?? "")}" placeholder="${tr("u.amountPh")}" aria-label="${tr("u.amount")}">
+        <select id="u-${s.id}-${j}-u" data-f="${p}.usages.${j}.unit" aria-label="${tr("u.unit")}">${unitOptions(u.unit)}</select>
+        <input type="text" class="note" id="u-${s.id}-${j}-n" data-f="${p}.usages.${j}.note" value="${esc(u.note)}" placeholder="${tr("u.notePh")}" aria-label="${tr("u.note")}">
+        <button class="icon-btn" type="button" data-act="del-usage" data-i-key="${i}" data-j="${j}" aria-label="${tr("u.remove")}">✕</button>
+        ${calcUsage(eid, s.id, j)}</div>`).join("") || `<div class="hint">${tr("s.usageHint")}</div>`}
     </div></div>`;
 }
 function calcUsage(eid, sid, j) {
   const e = S.exp[eid]; const s = e && (e.stages || []).find(x => x.id === sid); const u = s && s.usages[j];
-  const wrap = (cls, txt) => `<div class="calc ${cls}" data-calc="1" data-eid="${esc(eid)}" data-sid="${esc(sid)}" data-i="${j}">${txt}</div>`;
+  const wrap = (cls, txt) => `<div class="calc ${cls}" data-calc="1" data-eid="${esc(eid)}" data-sid="${esc(sid)}" data-i-key="${j}">${txt}</div>`;
   if (!u || !u.reagentId) return wrap("", "");
-  const r = S.rea[u.reagentId]; if (!r) return wrap("bad", "Реагент удалён из списка.");
-  if (r.kind === "mix") return wrap("", "Смесь готовится на месте: остаток не ведётся. Используйте «+ По рецепту», чтобы списать компоненты.");
+  const r = S.rea[u.reagentId]; if (!r) return wrap("bad", tr("calc.deleted"));
+  if (r.kind === "mix") return wrap("", tr("calc.mix"));
   const L = ledger(u.reagentId); const ev = L.events.find(x => x.ref.t === "exp" && x.ref.id === eid && x.ref.stage === sid && x.ref.idx === j);
-  if (ev && ev.bad) return wrap("bad", `Единица ${esc(u.unit)} не переводится в ${esc(r.unit)}: этот расход не учтён.`);
-  if (!ev || ev.bal == null) return wrap("", `Остаток ${esc(r.name)} не учтён. <a class="lnk" data-open-rea="${esc(u.reagentId)}">Записать партию</a>`);
+  if (ev && ev.bad) return wrap("bad", tr("calc.badUnit", esc(u.unit), esc(r.unit)));
+  if (!ev || ev.bal == null) return wrap("", `${tr("calc.untracked", esc(r.name))} <a class="lnk" data-open-rea="${esc(u.reagentId)}">${tr("calc.addBatch")}</a>`);
   const low = isLow(r, ev.bal);
-  return wrap(low ? "low" : "", `После этого осталось <b>${fmtNum(ev.bal)} ${esc(r.unit)}</b>${L.balance !== ev.bal ? ` · сейчас ${fmtNum(L.balance)} ${esc(r.unit)}` : ""}`);
+  return wrap(low ? "low" : "", `${tr("calc.after", fmtNum(ev.bal) + " " + esc(r.unit))}${L.balance !== ev.bal ? " · " + tr("calc.now", fmtNum(L.balance) + " " + esc(r.unit)) : ""}`);
 }
 
 function balHTML(id) {
   const r = S.rea[id]; const L = ledger(id); const low = isLow(r, L.balance);
-  if (r.kind === "mix") return `<div class="bal" id="balbox"><span>Смесь готовится на месте, остаток не ведётся. Её рецепт можно добавить к этапу эксперимента кнопкой «+ По рецепту».</span></div>`;
-  return `<div class="bal ${low ? "low" : ""}" id="balbox"><b>${L.balance == null ? "не учтён" : fmtNum(L.balance) + " " + esc(r.unit)}</b><span>израсходовано всего ${fmtNum(L.used)} ${esc(r.unit)}${low ? " · пора готовить или заказывать" : ""}</span></div>`;
+  if (r.kind === "mix") return `<div class="bal" id="balbox"><span>${tr("bal.mix")}</span></div>`;
+  return `<div class="bal ${low ? "low" : ""}" id="balbox"><b>${L.balance == null ? tr("r.untracked") : fmtNum(L.balance) + " " + esc(r.unit)}</b><span>${tr("bal.used", fmtNum(L.used) + " " + esc(r.unit))}${low ? " · " + tr("bal.lowTail") : ""}</span></div>`;
 }
 function viewRea(id, r) {
   const rec = r.recipe || { components: [] };
-  let h = `<input type="text" class="title-in" id="r-name" data-f="name" value="${esc(r.name)}" placeholder="Название" aria-label="Название">
+  let h = `<input type="text" class="title-in" id="r-name" data-f="name" value="${esc(r.name)}" placeholder="${tr("th.name")}" aria-label="${tr("th.name")}">
   ${balHTML(id)}
-  <div class="row-actions">${r.kind !== "mix" ? `<button class="btn" type="button" data-act="add-batch">+ Партия / пополнение</button><button class="btn" type="button" data-act="add-count">Сколько осталось сейчас</button>` : ""}${(rec.components || []).length && r.kind !== "mix" ? `<button class="btn primary" type="button" data-act="make-batch">Приготовить по рецепту</button>` : ""}</div>
+  <div class="row-actions">${r.kind !== "mix" ? `<button class="btn" type="button" data-act="add-batch">${tr("rea.addBatch")}</button><button class="btn" type="button" data-act="add-count">${tr("rea.addCount")}</button>` : ""}${(rec.components || []).length && r.kind !== "mix" ? `<button class="btn primary" type="button" data-act="make-batch">${tr("rea.make")}</button>` : ""}</div>
   <div class="grid2">
-    <label class="f"><span>Вид</span><select id="r-kind" data-f="kind" data-rerender="1">${Object.entries(KINDS).map(([k, x]) => `<option value="${k}" ${r.kind === k ? "selected" : ""}>${x}</option>`).join("")}</select></label>
-    <label class="f"><span>Лаборатория</span><select id="r-site" data-f="site">${siteOptions(r.site, true)}</select></label>
-    <label class="f"><span>Концентрация</span>${fld("r-conc", "conc", r.conc, 'placeholder="2 M, 10%, 50 mg/mL"')}</label>
-    <label class="f"><span>Единица учёта</span><select id="r-unit" data-f="unit" data-rerender="1">${unitOptions(r.unit)}</select></label>
-    <label class="f"><span>Где хранится</span>${fld("r-loc", "location", r.location, 'placeholder="−20 °C, полка 2"')}</label>
-    ${r.kind !== "mix" ? `<label class="f"><span>Предупредить, когда меньше</span>${fld("r-low", "low", r.low, 'inputmode="decimal" data-num="1" placeholder="' + esc(r.unit) + '"')}</label>` : ""}
+    <label class="f"><span>${tr("th.kind")}</span><select id="r-kind" data-f="kind" data-rerender="1">${Object.entries(KINDS).map(([k, x]) => `<option value="${k}" ${r.kind === k ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("f.lab")}</span><select id="r-site" data-f="site">${siteOptions(r.site, true)}</select></label>
+    <label class="f"><span>${tr("f.conc")}</span>${fld("r-conc", "conc", r.conc, 'placeholder="2 M, 10%, 50 mg/mL"')}</label>
+    <label class="f"><span>${tr("f.unit")}</span><select id="r-unit" data-f="unit" data-rerender="1">${unitOptions(r.unit)}</select></label>
+    <label class="f"><span>${tr("f.where")}</span>${fld("r-loc", "location", r.location, 'placeholder="' + tr("f.wherePh") + '"')}</label>
+    ${r.kind !== "mix" ? `<label class="f"><span>${tr("f.low")}</span>${fld("r-low", "low", r.low, 'inputmode="decimal" data-num="1" placeholder="' + esc(r.unit) + '"')}</label>` : ""}
   </div>
-  <label class="f"><span>Заметки</span><textarea id="r-notes" data-f="notes" rows="2">${esc(r.notes)}</textarea></label>
-  <div class="sec-h"><h3>Рецепт</h3><label class="f" style="grid-template-columns:auto 90px auto;align-items:center;gap:6px"><span>на</span>${fld("r-base", "recipe.baseAmount", rec.baseAmount, 'inputmode="decimal" data-num="1"')}<span>${esc(r.unit)}</span></label></div>
+  <label class="f"><span>${tr("f.stageNotes")}</span><textarea id="r-notes" data-f="notes" rows="2">${esc(r.notes)}</textarea></label>
+  <div class="sec-h"><h3>${tr("rea.recipeH")}</h3><label class="f" style="grid-template-columns:auto 90px auto;align-items:center;gap:6px"><span>${tr("rea.for")}</span>${fld("r-base", "recipe.baseAmount", rec.baseAmount, 'inputmode="decimal" data-num="1"')}<span>${esc(r.unit)}</span></label></div>
   <div class="usages">
-    ${(rec.components || []).length ? `<div class="comp comp-h"><span>Компонент</span><span>Кол-во</span><span>Ед.</span><span class="opt">Сток</span><span class="opt">Финал</span><span class="opt">Списывать со стока</span><span></span></div>` : ""}
+    ${(rec.components || []).length ? `<div class="comp comp-h"><span>${tr("comp.name")}</span><span>${tr("comp.amount")}</span><span>${tr("comp.unit")}</span><span class="opt">${tr("comp.stock")}</span><span class="opt">${tr("comp.final")}</span><span class="opt">${tr("comp.link")}</span><span></span></div>` : ""}
     ${(rec.components || []).map((c, j) => `<div class="comp">
-      ${fld(`c-${j}-n`, `recipe.components.${j}.name`, c.name, 'placeholder="название"')}
+      ${fld(`c-${j}-n`, `recipe.components.${j}.name`, c.name, 'placeholder="' + tr("comp.namePh") + '"')}
       ${fld(`c-${j}-a`, `recipe.components.${j}.amount`, c.amount, 'inputmode="decimal" data-num="1"')}
       <select id="c-${j}-u" data-f="recipe.components.${j}.unit"><option value="" ${!c.unit ? "selected" : ""}></option>${unitOptions(c.unit)}</select>
       <span class="opt">${fld(`c-${j}-s`, `recipe.components.${j}.stockConc`, c.stockConc)}</span>
       <span class="opt">${fld(`c-${j}-f`, `recipe.components.${j}.finalConc`, c.finalConc)}</span>
-      <span class="opt"><select id="c-${j}-r" data-f="recipe.components.${j}.reagentId">${reagentOptions(c.reagentId, r.site).replace("— выберите —", "— не списывать —")}</select></span>
-      <button class="icon-btn" type="button" data-act="del-comp" data-j="${j}" aria-label="Убрать компонент">✕</button></div>`).join("") || `<div class="hint">Рецепт пока не вписан.</div>`}
-    <div><button class="btn sm" type="button" data-act="add-comp">+ Компонент</button></div>
+      <span class="opt"><select id="c-${j}-r" data-f="recipe.components.${j}.reagentId">${reagentOptions(c.reagentId, r.site).replace(tr("pick"), tr("noConsume"))}</select></span>
+      <button class="icon-btn" type="button" data-act="del-comp" data-j="${j}" aria-label="${tr("comp.remove")}">✕</button></div>`).join("") || `<div class="hint">${tr("rea.noRecipe")}</div>`}
+    <div><button class="btn sm" type="button" data-act="add-comp">${tr("rea.addComp")}</button></div>
   </div>
-  <label class="f"><span>Как готовить</span><textarea id="r-rnotes" data-f="recipe.notes" rows="2" placeholder="pH, порядок, хранение">${esc(rec.notes)}</textarea></label>`;
+  <label class="f"><span>${tr("rea.howTo")}</span><textarea id="r-rnotes" data-f="recipe.notes" rows="2" placeholder="${tr("rea.howToPh")}">${esc(rec.notes)}</textarea></label>`;
   if (r.kind !== "mix") {
-    h += `<div class="sec-h"><h3>Партии и инвентаризации</h3></div><div class="usages">
+    h += `<div class="sec-h"><h3>${tr("rea.batchesH")}</h3></div><div class="usages">
     ${(r.batches || []).map((b, j) => `<div class="batch">
-      <input type="date" id="b-${j}-d" data-f="batches.${j}.date" value="${esc(b.date)}" aria-label="Дата">
-      <select id="b-${j}-k" data-f="batches.${j}.kind" aria-label="Тип"><option value="add" ${b.kind !== "count" ? "selected" : ""}>Пополнение +</option><option value="count" ${b.kind === "count" ? "selected" : ""}>Осталось =</option></select>
-      ${fld(`b-${j}-a`, `batches.${j}.amount`, b.amount, 'inputmode="decimal" data-num="1" aria-label="Количество"')}
-      <select id="b-${j}-u" data-f="batches.${j}.unit" aria-label="Единица">${unitOptions(b.unit || r.unit)}</select>
-      ${fld(`b-${j}-n`, `batches.${j}.note`, b.note, 'placeholder="комментарий" aria-label="Комментарий"')}
-      <button class="icon-btn" type="button" data-act="del-batch" data-j="${j}" aria-label="Удалить">✕</button></div>${(b.consumed || []).length ? `<div class="hint" style="margin-top:-4px">списано на эту партию: ${b.consumed.map(c => `${esc(S.rea[c.reagentId]?.name || "?")} ${fmtNum(num(c.amount))} ${esc(c.unit)}`).join(", ")}</div>` : ""}`).join("") || `<div class="hint">Запишите, сколько приготовлено или сколько сейчас в бутылке, и остаток начнёт считаться.</div>`}
+      <input type="date" id="b-${j}-d" data-f="batches.${j}.date" value="${esc(b.date)}" aria-label="${tr("f.date")}">
+      <select id="b-${j}-k" data-f="batches.${j}.kind" aria-label="${tr("f.type")}"><option value="add" ${b.kind !== "count" ? "selected" : ""}>${tr("batch.add")}</option><option value="count" ${b.kind === "count" ? "selected" : ""}>${tr("batch.count")}</option></select>
+      ${fld(`b-${j}-a`, `batches.${j}.amount`, b.amount, 'inputmode="decimal" data-num="1" aria-label="' + tr("u.amount") + '"')}
+      <select id="b-${j}-u" data-f="batches.${j}.unit" aria-label="${tr("u.unit")}">${unitOptions(b.unit || r.unit)}</select>
+      ${fld(`b-${j}-n`, `batches.${j}.note`, b.note, 'placeholder="' + tr("u.notePh") + '" aria-label="' + tr("u.note") + '"')}
+      <button class="icon-btn" type="button" data-act="del-batch" data-j="${j}" aria-label="${tr("del")}">✕</button></div>${(b.consumed || []).length ? `<div class="hint" style="margin-top:-4px">${tr("batch.consumed", b.consumed.map(c => `${esc(S.rea[c.reagentId]?.name || "?")} ${fmtNum(num(c.amount))} ${esc(c.unit)}`).join(", "))}</div>` : ""}`).join("") || `<div class="hint">${tr("rea.batchesHint")}</div>`}
     </div>`;
   }
-  h += `<div class="sec-h"><h3>История расхода</h3></div><div class="tbl-wrap ledger" id="led">${ledgerHTML(id)}</div>`;
+  h += `<div class="sec-h"><h3>${tr("rea.historyH")}</h3></div><div class="tbl-wrap ledger" id="led">${ledgerHTML(id)}</div>`;
   return h;
 }
 function ledgerHTML(id) {
   const r = S.rea[id]; const L = ledger(id);
-  if (!L.events.length) return `<div class="empty" style="border:0">Пока ни одной записи.</div>`;
-  return `<table><thead><tr><th>Дата</th><th>Что</th><th class="r">Изменение</th>${r.kind !== "mix" ? `<th class="r">Остаток</th>` : ""}</tr></thead><tbody>${L.events.slice().reverse().map(x => {
+  if (!L.events.length) return `<div class="empty" style="border:0">${tr("led.empty")}</div>`;
+  return `<table><thead><tr><th>${tr("f.date")}</th><th>${tr("led.what")}</th><th class="r">${tr("led.change")}</th>${r.kind !== "mix" ? `<th class="r">${tr("th.left")}</th>` : ""}</tr></thead><tbody>${L.events.slice().reverse().map(x => {
     const what = x.ref.t === "exp" ? `<a class="lnk" data-open-exp="${esc(x.ref.id)}">${esc(x.ref.title)}</a><span class="small">${esc(x.ref.stageTitle || "")}${x.note ? " · " + esc(x.note) : ""}</span>`
-      : x.ref.t === "rea" ? `на партию <a class="lnk" data-open-rea="${esc(x.ref.id)}">${esc(x.ref.title)}</a>`
-      : (x.kind === "count" ? "Инвентаризация" : "Пополнение") + (x.note ? `<span class="small">${esc(x.note)}</span>` : "");
-    const ch = x.bad ? `<span class="small" style="color:var(--bad)">${fmtNum(num(x.amount))} ${esc(x.unit)}: не переводится</span>` : x.kind === "count" ? `= ${fmtNum(x.q)}` : (x.kind === "add" ? "+" : "−") + fmtNum(x.q);
-    return `<tr class="${x.kind}"><td class="num">${x.date ? fmtDate(x.date, true) : "без даты"}</td><td>${what}</td><td class="r num">${ch}</td>${r.kind !== "mix" ? `<td class="r num">${x.bal == null ? "—" : fmtNum(x.bal)}</td>` : ""}</tr>`;
+      : x.ref.t === "rea" ? tr("led.forBatch", `<a class="lnk" data-open-rea="${esc(x.ref.id)}">${esc(x.ref.title)}</a>`)
+      : (x.kind === "count" ? tr("led.count") : tr("led.add")) + (x.note ? `<span class="small">${esc(x.note)}</span>` : "");
+    const ch = x.bad ? `<span class="small" style="color:var(--bad)">${tr("led.badUnit", fmtNum(num(x.amount)) + " " + esc(x.unit))}</span>` : x.kind === "count" ? `= ${fmtNum(x.q)}` : (x.kind === "add" ? "+" : "−") + fmtNum(x.q);
+    return `<tr class="${x.kind}"><td class="num">${x.date ? fmtDate(x.date, true) : tr("led.noDate")}</td><td>${what}</td><td class="r num">${ch}</td>${r.kind !== "mix" ? `<td class="r num">${x.bal == null ? "—" : fmtNum(x.bal)}</td>` : ""}</tr>`;
   }).join("")}</tbody></table>`;
 }
 
@@ -754,21 +1065,21 @@ const Modal = {
   close() { $("#modal").classList.remove("open"); this.onOk = null; },
 };
 function confirmBox(title, text, okLabel, fn) {
-  Modal.open(`<h2>${esc(title)}</h2><p>${text}</p><div class="modal-foot"><button class="btn" type="button" data-m="cancel">Отмена</button><button class="btn primary" type="button" data-m="ok">${esc(okLabel)}</button></div>`, () => { fn(); return true; });
+  Modal.open(`<h2>${esc(title)}</h2><p>${text}</p><div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${esc(okLabel)}</button></div>`, () => { fn(); return true; });
 }
 
 function newExperiment() {
   const tOpts = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${esc(t.name)}</option>`).join("");
-  Modal.open(`<h2>Новый эксперимент</h2>
-    <label class="f"><span>Тип</span><select id="mType">${tOpts}</select></label>
-    <label class="f"><span>Название</span><input type="text" id="mTitle" placeholder="оставьте пустым — будет «Тип + дата»"></label>
-    <div class="grid2"><label class="f"><span>Дата начала</span><input type="date" id="mDate" value="${today()}"></label>
-    <label class="f"><span>Лаборатория</span><select id="mSite">${siteOptions(UI.site !== "all" ? UI.site : "babtai", true)}</select></label></div>
-    <label class="check"><input type="checkbox" id="mPreset" checked> Сразу добавить типовые этапы</label>
-    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">Отмена</button><button class="btn primary" type="button" data-m="ok">Создать</button></div>`, () => {
+  Modal.open(`<h2>${tr("ne.title")}</h2>
+    <label class="f"><span>${tr("f.type")}</span><select id="mType">${tOpts}</select></label>
+    <label class="f"><span>${tr("th.name")}</span><input type="text" id="mTitle" placeholder="${tr("ne.titlePh")}"></label>
+    <div class="grid2"><label class="f"><span>${tr("ne.date")}</span><input type="date" id="mDate" value="${today()}"></label>
+    <label class="f"><span>${tr("f.lab")}</span><select id="mSite">${siteOptions(UI.site !== "all" ? UI.site : "babtai", true)}</select></label></div>
+    <label class="check"><input type="checkbox" id="mPreset" checked> ${tr("ne.preset")}</label>
+    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${tr("ne.create")}</button></div>`, () => {
     const type = $("#mType").value, t = TYPES[type], date = $("#mDate").value || today(), site = $("#mSite").value;
     const id = uid("e_");
-    const stages = $("#mPreset").checked ? t.stages.map((p) => ({ id: uid("s"), title: p.t, date: p.next ? "" : date, site: p.site || site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })) : [];
+    const stages = $("#mPreset").checked ? t.stages.map((p) => ({ id: uid("s"), title: tr(p.t), date: p.next ? "" : date, site: p.site || site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })) : [];
     S.exp[id] = { title: $("#mTitle").value.trim() || `${t.name} ${fmtDate(date)}`, type, status: date > today() ? "planned" : "active", startDate: date, endDate: "", samples: "", notes: "", stages, sourceFile: "", parentId: "", log: [], createdAt: Date.now(), updatedAt: Date.now() };
     save("experiments", id, 0); render(); Drawer.open("experiments", id); return true;
   });
@@ -777,18 +1088,18 @@ function newExperiment() {
 }
 function newReagent() {
   const id = uid("r_");
-  S.rea[id] = { name: "Новый реагент", kind: "stock", site: UI.site !== "all" ? UI.site : "babtai", unit: "mL", conc: "", location: "", low: null, notes: "", recipe: { baseAmount: null, components: [], notes: "" }, batches: [], createdAt: Date.now(), updatedAt: Date.now() };
+  S.rea[id] = { name: tr("newReagent"), kind: "stock", site: UI.site !== "all" ? UI.site : "babtai", unit: "mL", conc: "", location: "", low: null, notes: "", recipe: { baseAmount: null, components: [], notes: "" }, batches: [], createdAt: Date.now(), updatedAt: Date.now() };
   save("reagents", id, 0); render(); Drawer.open("reagents", id);
   setTimeout(() => { const el = $("#r-name"); if (el) { el.focus(); el.select(); } }, 220);
 }
 function batchModal(kind) {
   const r = Drawer.doc();
-  Modal.open(`<h2>${kind === "count" ? "Сколько осталось сейчас" : "Новая партия или пополнение"}</h2>
-    <p class="hint">${kind === "count" ? "Остаток будет выставлен на это значение, дальше расход считается от него." : "Количество прибавится к остатку."}</p>
-    <div class="grid2"><label class="f"><span>Дата</span><input type="date" id="mDate" value="${today()}"></label>
-    <label class="f"><span>Количество, ${esc(r.unit)}</span><input type="text" inputmode="decimal" id="mAmt"></label></div>
-    <label class="f"><span>Комментарий</span><input type="text" id="mNote" placeholder="${kind === "count" ? "проверила бутылку" : "номер лота, кто готовил"}"></label>
-    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">Отмена</button><button class="btn primary" type="button" data-m="ok">Записать</button></div>`, () => {
+  Modal.open(`<h2>${kind === "count" ? tr("rea.addCount") : tr("bm.addTitle")}</h2>
+    <p class="hint">${kind === "count" ? tr("bm.countHint") : tr("bm.addHint")}</p>
+    <div class="grid2"><label class="f"><span>${tr("f.date")}</span><input type="date" id="mDate" value="${today()}"></label>
+    <label class="f"><span>${tr("bm.amount", esc(r.unit))}</span><input type="text" inputmode="decimal" id="mAmt"></label></div>
+    <label class="f"><span>${tr("u.note")}</span><input type="text" id="mNote" placeholder="${kind === "count" ? tr("bm.countPh") : tr("bm.addPh")}"></label>
+    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${tr("bm.save")}</button></div>`, () => {
     const a = num($("#mAmt").value); if (a == null) { $("#mAmt").focus(); return false; }
     (r.batches = r.batches || []).push({ id: uid("b_"), date: $("#mDate").value || today(), kind, amount: a, unit: r.unit, note: $("#mNote").value.trim(), ts: Date.now() });
     save("reagents", Drawer.id); Drawer.render(); render(); return true;
@@ -797,26 +1108,26 @@ function batchModal(kind) {
 let RP = null;
 function recipePreview() {
   if (!RP) return ""; const r = S.rea[RP.rid]; const base = num(r.recipe.baseAmount); const target = num($("#mAmt")?.value);
-  if (!base) return `<div class="hint">Сначала впишите, на какой объём рецепт («Рецепт на …»).</div>`;
-  if (!target) return `<div class="hint">Введите количество.</div>`;
+  if (!base) return `<div class="hint">${tr("rp.needBase")}</div>`;
+  if (!target) return `<div class="hint">${tr("rp.needAmount")}</div>`;
   const f = target / base;
-  return `<table><thead><tr><th>Компонент</th><th class="r">Нужно</th><th>Списать со</th></tr></thead><tbody>${r.recipe.components.map(c => { const n = num(c.amount); return `<tr><td>${esc(c.name)}${c.finalConc ? `<span class="small">${esc(c.finalConc)}</span>` : ""}</td><td class="r num">${n == null ? esc(c.amount) : fmtNum(n * f) + " " + esc(c.unit)}</td><td>${c.reagentId && S.rea[c.reagentId] ? esc(S.rea[c.reagentId].name) : "—"}</td></tr>`; }).join("")}</tbody></table><p class="hint">Коэффициент × ${fmtNum(f)}</p>`;
+  return `<table><thead><tr><th>${tr("comp.name")}</th><th class="r">${tr("rp.need")}</th><th>${tr("rp.from")}</th></tr></thead><tbody>${r.recipe.components.map(c => { const n = num(c.amount); return `<tr><td>${esc(c.name)}${c.finalConc ? `<span class="small">${esc(c.finalConc)}</span>` : ""}</td><td class="r num">${n == null ? esc(c.amount) : fmtNum(n * f) + " " + esc(c.unit)}</td><td>${c.reagentId && S.rea[c.reagentId] ? esc(S.rea[c.reagentId].name) : "—"}</td></tr>`; }).join("")}</tbody></table><p class="hint">${tr("rp.factor", fmtNum(f))}</p>`;
 }
 function scaledConsumption(rid, target) {
   const r = S.rea[rid]; const f = target / num(r.recipe.baseAmount);
-  return r.recipe.components.filter(c => c.reagentId && S.rea[c.reagentId] && num(c.amount) != null).map(c => ({ reagentId: c.reagentId, amount: +(num(c.amount) * f).toPrecision(6), unit: c.unit || S.rea[c.reagentId].unit, note: "по рецепту: " + r.name, ts: Date.now() }));
+  return r.recipe.components.filter(c => c.reagentId && S.rea[c.reagentId] && num(c.amount) != null).map(c => ({ reagentId: c.reagentId, amount: +(num(c.amount) * f).toPrecision(6), unit: c.unit || S.rea[c.reagentId].unit, note: tr("byRecipeNote", r.name), ts: Date.now() }));
 }
 function makeBatchModal() {
   const r = Drawer.doc(); RP = { rid: Drawer.id };
-  Modal.open(`<h2>Приготовить: ${esc(r.name)}</h2>
-    <div class="grid2"><label class="f"><span>Дата</span><input type="date" id="mDate" value="${today()}"></label>
-    <label class="f"><span>Сколько готовлю, ${esc(r.unit)}</span><input type="text" inputmode="decimal" id="mAmt" value="${esc(r.recipe.baseAmount ?? "")}"></label></div>
+  Modal.open(`<h2>${tr("mb.title", esc(r.name))}</h2>
+    <div class="grid2"><label class="f"><span>${tr("f.date")}</span><input type="date" id="mDate" value="${today()}"></label>
+    <label class="f"><span>${tr("mb.amount", esc(r.unit))}</span><input type="text" inputmode="decimal" id="mAmt" value="${esc(r.recipe.baseAmount ?? "")}"></label></div>
     <div class="tbl-wrap" id="recipePrev">${recipePreview()}</div>
-    <label class="check"><input type="checkbox" id="mConsume" checked> Списать связанные компоненты со стоков</label>
-    <label class="f"><span>Комментарий</span><input type="text" id="mNote"></label>
-    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">Отмена</button><button class="btn primary" type="button" data-m="ok">Записать партию</button></div>`, () => {
+    <label class="check"><input type="checkbox" id="mConsume" checked> ${tr("mb.consume")}</label>
+    <label class="f"><span>${tr("u.note")}</span><input type="text" id="mNote"></label>
+    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${tr("mb.save")}</button></div>`, () => {
     const a = num($("#mAmt").value); if (a == null || !num(r.recipe.baseAmount)) return false;
-    const b = { id: uid("b_"), date: $("#mDate").value || today(), kind: "add", amount: a, unit: r.unit, note: ($("#mNote").value.trim() || "приготовлено по рецепту"), ts: Date.now() };
+    const b = { id: uid("b_"), date: $("#mDate").value || today(), kind: "add", amount: a, unit: r.unit, note: ($("#mNote").value.trim() || tr("mb.defNote")), ts: Date.now() };
     if ($("#mConsume").checked) b.consumed = scaledConsumption(RP.rid, a);
     (r.batches = r.batches || []).push(b); save("reagents", Drawer.id); RP = null; Drawer.render(); render(); return true;
   });
@@ -826,13 +1137,13 @@ function makeBatchModal() {
 function recipeUsageModal(i) {
   const e = Drawer.doc(); const s = e.stages[i];
   const recipes = Object.entries(S.rea).filter(([, r]) => (r.recipe?.components || []).some(c => c.reagentId) && num(r.recipe.baseAmount));
-  if (!recipes.length) { toast("Нет рецептов со связанными стоками. Добавьте их во вкладке «Реагенты»."); return; }
+  if (!recipes.length) { toast(tr("ru.none")); return; }
   RP = { rid: recipes[0][0] };
-  Modal.open(`<h2>Списать компоненты по рецепту</h2>
-    <label class="f"><span>Рецепт</span><select id="mRec">${recipes.map(([id, r]) => `<option value="${esc(id)}">${esc(r.name)} (на ${fmtNum(num(r.recipe.baseAmount))} ${esc(r.unit)})</option>`).join("")}</select></label>
-    <label class="f"><span>Сколько приготовлено</span><input type="text" inputmode="decimal" id="mAmt" value="${esc(recipes[0][1].recipe.baseAmount)}"></label>
+  Modal.open(`<h2>${tr("ru.title")}</h2>
+    <label class="f"><span>${tr("rea.recipeH")}</span><select id="mRec">${recipes.map(([id, r]) => `<option value="${esc(id)}">${esc(r.name)} (${tr("ru.for", fmtNum(num(r.recipe.baseAmount)) + " " + esc(r.unit))})</option>`).join("")}</select></label>
+    <label class="f"><span>${tr("ru.amount")}</span><input type="text" inputmode="decimal" id="mAmt" value="${esc(recipes[0][1].recipe.baseAmount)}"></label>
     <div class="tbl-wrap" id="recipePrev">${""}</div>
-    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">Отмена</button><button class="btn primary" type="button" data-m="ok">Добавить в этап</button></div>`, () => {
+    <div class="modal-foot"><button class="btn" type="button" data-m="cancel">${tr("cancel")}</button><button class="btn primary" type="button" data-m="ok">${tr("ru.add")}</button></div>`, () => {
     const a = num($("#mAmt").value); if (a == null) return false;
     s.usages = (s.usages || []).concat(scaledConsumption(RP.rid, a));
     save("experiments", Drawer.id); RP = null; Drawer.render(); render(); return true;
@@ -848,17 +1159,17 @@ async function doExport() {
   const fn = `lab-journal-${today()}.json`;
   if (downloads) { try { await downloads.save({ filename: fn, data }); return; } catch (e) { if (e && e.code === "declined") return; } }
   if (S.mode === "local" && saveDownload(fn, data)) return;
-  try { await navigator.clipboard.writeText(data); toast("Резервная копия скопирована в буфер обмена"); } catch { toast("Не получилось сохранить файл"); }
+  try { await navigator.clipboard.writeText(data); toast(tr("toast.copied")); } catch { toast(tr("toast.saveFail")); }
 }
 function doImport(file) {
   const fr = new FileReader();
   fr.onload = () => {
-    let d; try { d = JSON.parse(fr.result); } catch { toast("Это не файл журнала (JSON)"); return; }
+    let d; try { d = JSON.parse(fr.result); } catch { toast(tr("toast.notJournal")); return; }
     const ne = Object.keys(d.experiments || {}).length, nr = Object.keys(d.reagents || {}).length;
-    confirmBox("Импорт", `В файле ${ne} экспериментов и ${nr} реагентов. Записи с теми же id будут заменены, остальные сохранятся.`, "Импортировать", async () => {
+    confirmBox(tr("import"), esc(tr("imp.text", ne, nr)), tr("import"), async () => {
       for (const [id, o] of Object.entries(d.experiments || {})) { S.exp[id] = o; save("experiments", id, 50); }
       for (const [id, o] of Object.entries(d.reagents || {})) { S.rea[id] = o; save("reagents", id, 50); }
-      render(); toast("Импортировано");
+      render(); toast(tr("imp.done"));
     });
   };
   fr.readAsText(file);
@@ -887,11 +1198,11 @@ document.addEventListener("click", (ev) => {
     case "file-new": fileNew(); break;
     case "file-reconnect": fileReconnect(); break;
     case "file-unlink": fileUnlink(); break;
-    case "file-save": saveDownload("lab-journal.json", JSON.stringify(payload(), null, 1)) || toast("Не получилось сохранить файл"); break;
+    case "file-save": saveDownload("lab-journal.json", JSON.stringify(payload(), null, 1)) || toast(tr("toast.saveFail")); break;
     case "low-reagents": UI.lowOnly = true; break;
     case "add-stage": { const last = (o.stages || [])[o.stages.length - 1]; (o.stages = o.stages || []).push({ id: uid("s"), title: "", date: today(), site: last ? last.site : (TYPES[o.type]?.site || ""), done: false, notes: "", usages: [] }); save("experiments", Drawer.id); Drawer.render(); setTimeout(() => { const s = o.stages[o.stages.length - 1]; const el = $(`#s-${s.id}-t`); if (el) { el.scrollIntoView({ block: "center" }); el.focus(); } }, 30); render(); break; }
-    case "preset-stages": { const t = TYPES[o.type]; o.stages = t.stages.map(p => ({ id: uid("s"), title: p.t, date: p.next ? "" : (o.startDate || today()), site: p.site || t.site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })); save("experiments", Drawer.id); Drawer.render(); render(); break; }
-    case "del-stage": { const s = o.stages[i]; confirmBox("Удалить этап?", `«${esc(s.title || "без названия")}» и записанный в нём расход реагентов будут удалены.`, "Удалить", () => { o.stages.splice(i, 1); save("experiments", Drawer.id); Drawer.render(); render(); }); break; }
+    case "preset-stages": { const t = TYPES[o.type]; o.stages = t.stages.map(p => ({ id: uid("s"), title: tr(p.t), date: p.next ? "" : (o.startDate || today()), site: p.site || t.site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })); save("experiments", Drawer.id); Drawer.render(); render(); break; }
+    case "del-stage": { const s = o.stages[i]; confirmBox(tr("ds.title"), tr("ds.text", esc(s.title || tr("noTitle"))), tr("del"), () => { o.stages.splice(i, 1); save("experiments", Drawer.id); Drawer.render(); render(); }); break; }
     case "stage-up": if (i > 0) { const s = o.stages.splice(i, 1)[0]; o.stages.splice(i - 1, 0, s); save("experiments", Drawer.id); Drawer.render(); } break;
     case "add-usage": { const s = o.stages[i]; (s.usages = s.usages || []).push({ reagentId: "", amount: "", unit: "mL", note: "", ts: Date.now() }); save("experiments", Drawer.id); Drawer.render(); const el = $(`#u-${s.id}-${s.usages.length - 1}-r`); if (el) el.focus(); break; }
     case "recipe-usage": recipeUsageModal(i); break;
@@ -900,20 +1211,20 @@ document.addEventListener("click", (ev) => {
     case "del-log": o.log = (o.log || []).filter(l => String(l.ts) !== a.dataset.ts); save("experiments", Drawer.id); Drawer.render(); break;
     case "dup-exp": {
       const id = uid("e_"); const c = clone(o); const d = today();
-      c.title = c.title.replace(/\s*[\d,\s–-]*\s(янв|фев|мар|апр|мая|май|июн|июл|авг|сен|окт|ноя|дек)\S*$/i, "").trim() + " " + fmtDate(d);
+      c.title = stripTitleDate(c.title) + " " + fmtDate(d);
       c.startDate = d; c.endDate = ""; c.status = "active"; c.log = []; c.parentId = ""; c.sourceFile = ""; c.createdAt = c.updatedAt = Date.now();
       c.stages = c.stages.map(s => ({ ...s, id: uid("s"), date: d, done: false, notes: "", usages: (s.usages || []).map(u => ({ ...u, ts: Date.now() })) }));
-      S.exp[id] = c; save("experiments", id, 0); render(); Drawer.open("experiments", id); toast("Копия создана с сегодняшней датой: поправьте количества"); break;
+      S.exp[id] = c; save("experiments", id, 0); render(); Drawer.open("experiments", id); toast(tr("dup.toast")); break;
     }
-    case "del-exp": confirmBox("Удалить эксперимент?", `«${esc(o.title)}» и весь его расход реагентов будут удалены. Это нельзя отменить.`, "Удалить", () => { const id = Drawer.id; remove("experiments", id); Drawer.close(); }); break;
+    case "del-exp": confirmBox(tr("de.title"), tr("de.text", esc(o.title)), tr("del"), () => { const id = Drawer.id; remove("experiments", id); Drawer.close(); }); break;
     case "del-rea": {
       const used = ledger(Drawer.id).events.filter(x => x.kind === "use").length;
-      confirmBox("Удалить реагент?", `«${esc(o.name)}» исчезнет из списка.${used ? ` В экспериментах есть ${used} записей расхода, они останутся с пометкой «удалён».` : ""}`, "Удалить", () => { const id = Drawer.id; remove("reagents", id); Drawer.close(); }); break;
+      confirmBox(tr("dr.title"), tr("dr.text", esc(o.name)) + (used ? " " + tr("dr.used", used) : ""), tr("del"), () => { const id = Drawer.id; remove("reagents", id); Drawer.close(); }); break;
     }
     case "add-batch": batchModal("add"); break;
     case "add-count": batchModal("count"); break;
     case "make-batch": makeBatchModal(); break;
-    case "del-batch": confirmBox("Удалить запись партии?", "Остаток будет пересчитан.", "Удалить", () => { o.batches.splice(j, 1); save("reagents", Drawer.id); Drawer.render(); render(); }); break;
+    case "del-batch": confirmBox(tr("db.title"), tr("db.text"), tr("del"), () => { o.batches.splice(j, 1); save("reagents", Drawer.id); Drawer.render(); render(); }); break;
     case "add-comp": { const rc = o.recipe = o.recipe || { baseAmount: null, components: [], notes: "" }; (rc.components = rc.components || []).push({ name: "", amount: "", unit: "mL", reagentId: "", stockConc: "", finalConc: "" }); save("reagents", Drawer.id); Drawer.render(); const el = $(`#c-${rc.components.length - 1}-n`); if (el) el.focus(); break; }
     case "del-comp": o.recipe.components.splice(j, 1); save("reagents", Drawer.id); Drawer.render(); break;
   }
@@ -953,13 +1264,15 @@ document.addEventListener("change", (ev) => {
   if (id === "fStatus") { UI.status = ev.target.value; render(); return; }
   if (id === "fKind") { UI.kind = ev.target.value; render(); return; }
   if (id === "fLow") { UI.lowOnly = ev.target.checked; render(); return; }
-  if (id === "openFile") { const f = ev.target.files[0]; ev.target.value = ""; if (!f) return; f.text().then(t => { try { applyData(parseJournal(t)); toast("Открыт " + f.name); } catch { toast("Это не файл журнала"); } }); return; }
+  if (id === "openFile") { const f = ev.target.files[0]; ev.target.value = ""; if (!f) return; f.text().then(t => { try { applyData(parseJournal(t)); toast(tr("toast.opened", f.name)); } catch { toast(tr("toast.notJournal")); } }); return; }
   if (id === "importFile") { if (ev.target.files[0]) doImport(ev.target.files[0]); ev.target.value = ""; return; }
   onField(ev, true);
 });
 document.addEventListener("focusout", () => { setTimeout(() => { if (Drawer.stale && !$("#drBody").contains(document.activeElement)) Drawer.render(); }, 50); });
 window.addEventListener("hashchange", () => { UI.q = ""; render(); });
 
+applyStaticAll();
+document.addEventListener("change", (ev) => { if (ev.target.id === "lang") setLang(ev.target.value); });
 init();
 </script>
 </body>
