@@ -358,6 +358,9 @@ const I18N = {
   "type.transplant": ["Kasvien siirto","Пересадка рослин","Augalų persodinimas","Plant transplanting"],
   "type.western": ["Western blot","Western blot","Western blot","Western blot"],
   "type.tryptofluo": ["Tryptofaanifluoresenssi","Триптофанова флуоресценція","Triptofano fluorescencija","Tryptophan fluorescence"],
+  "type.protein": ["Proteiinimääritys","Визначення білка","Baltymų nustatymas","Protein assay"],
+  "ps.pa1": ["BSA-standardit","Стандарти BSA","BSA standartai","BSA standards"],
+  "ps.pa2": ["Mittaus","Вимірювання","Matavimas","Measurement"],
   "type.analysis": ["Data-analyysi","Аналіз даних","Duomenų analizė","Data analysis"],
   "type.other": ["Muu","Інше","Kita","Other"],
   "ps.xl1": ["Näytteiden keräys PBS:ään + formaldehydi","Збір зразків у PBS + формальдегід","Mėginių surinkimas į PBS + formaldehidas","Sample collection in PBS + formaldehyde"],
@@ -689,6 +692,7 @@ const TYPES = {
   transplant: { site: "babtai", stages: [ { t: "ps.tr1" } ] },
   western: { site: "kaunas", stages: [ { t: "ps.wb1" }, { t: "ps.wb2" }, { t: "ps.wb3" }, { t: "ps.wb4", next: 1 } ] },
   tryptofluo: { site: "kaunas", stages: [ { t: "ps.tf1" }, { t: "ps.tf2" } ] },
+  protein: { site: "kaunas", stages: [ { t: "ps.pa1", use: ["r_bsa50"] }, { t: "ps.pa2" } ] },
   analysis: { site: "", stages: [ { t: "ps.an1" } ] },
   other: { site: "kaunas", stages: [ { t: "ps.ot1" } ] },
 };
