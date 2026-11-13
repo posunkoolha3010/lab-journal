@@ -201,6 +201,8 @@ nav.tabs a{white-space:nowrap}
   .top-in nav.tabs{-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
   .top-in .sync{font-size:0;gap:0}
 }
+.hbtn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+@media (max-width:760px){.hbtn .lbl{display:none}.top-in .tools{gap:6px}}
 select.lang{width:auto;padding:5px 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* reagents table */
@@ -303,6 +305,8 @@ a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline;text-underlin
     </div>
     <div class="tools">
       <span class="sync" id="sync" data-s="" data-i-key="connecting"></span>
+      <button class="btn ghost sm hbtn" type="button" data-act="export" data-i-title="export.tip"><span aria-hidden="true">💾</span><span class="lbl" data-i-key="export"></span></button>
+      <button class="btn ghost sm hbtn" type="button" data-act="import" data-i-title="import.tip"><span aria-hidden="true">📂</span><span class="lbl" data-i-key="import"></span></button>
       <select id="lang" class="lang" data-i-aria="lang.aria"></select>
     </div>
   </div>
@@ -427,8 +431,10 @@ const I18N = {
   "search.aria": ["Haku","Пошук","Paieška","Search"],
   "j.allTypes": ["Kaikki tyypit","Усі типи","Visi tipai","All types"],
   "j.anyStatus": ["Mikä tahansa tila","Будь-який статус","Bet kokia būsena","Any status"],
-  "export": ["Vie","Експорт","Eksportuoti","Export"],
+  "export": ["Tallenna kopio","Зберегти копію","Išsaugoti kopiją","Save a copy"],
   "import": ["Tuo","Імпорт","Importuoti","Import"],
+  "export.tip": ["Lataa koko päiväkirja (kokeet, reagenssit, pakastin) tiedostoon lab-journal-VVVVKKPP.json","Завантажити весь журнал (експерименти, реагенти, морозилка) у файл lab-journal-РРРРММДД.json","Atsisiųsti visą žurnalą (eksperimentai, reagentai, šaldiklis) į failą lab-journal-MMMMMMDD.json","Download the whole journal (experiments, reagents, freezer) as lab-journal-YYYYMMDD.json"],
+  "import.tip": ["Lisää merkinnät toisesta .json-tiedostosta","Додати записи з іншого файлу .json","Pridėti įrašus iš kito .json failo","Add records from another .json file"],
   "stat.exps": ["koetta","експериментів","eksperimentų","experiments"],
   "stat.active": ["käynnissä tai suunniteltu","у роботі або в плані","vykdomi arba suplanuoti","in progress or planned"],
   "stat.days": ["kirjattua työpäivää","робочих днів у журналі","darbo dienų žurnale","lab days logged"],
@@ -853,6 +859,7 @@ async function fileReconnect() {
   await fileAttach(FL.handle, false);
 }
 async function fileUnlink() { FL.handle = null; FL.name = ""; FL.need = false; await idbDel("file"); render(); fileStatus(); }
+function datedName() { return `lab-journal-${today().replace(/-/g, "")}.json`; }
 function saveDownload(name, text) {
   try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "application/json" })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); return true; } catch { return false; }
 }
@@ -940,6 +947,7 @@ function applyStaticAll() {
   document.title = tr("appName") + " · " + SITES.babtai + " · " + SITES.kaunas;
   $$("[data-i-key]").forEach(el => { el.textContent = tr(el.dataset.iKey); });
   $$("[data-i-aria]").forEach(el => el.setAttribute("aria-label", tr(el.dataset.iAria)));
+  $$("[data-i-title]").forEach(el => el.title = tr(el.dataset.iTitle));
   const sel = $("#lang"); if (sel && !sel.options.length) sel.innerHTML = Object.entries(LANGS).map(([k, n]) => `<option value="${k}">${n}</option>`).join("");
   if (sel) sel.value = LANG;
 }
@@ -984,9 +992,6 @@ function viewJournal() {
     <input type="search" id="q" placeholder="${tr("j.search")}" value="${esc(UI.q)}" aria-label="${tr("search.aria")}">
     <select id="fType" aria-label="${tr("f.type")}"><option value="">${tr("j.allTypes")}</option>${Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${UI.type === k ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
     <select id="fStatus" aria-label="${tr("f.status")}"><option value="">${tr("j.anyStatus")}</option>${Object.entries(STATUS).map(([k, t]) => `<option value="${k}" ${UI.status === k ? "selected" : ""}>${t}</option>`).join("")}</select>
-    <span class="spacer"></span>
-    <button class="btn ghost sm" type="button" data-act="export">${tr("export")}</button>
-    <button class="btn ghost sm" type="button" data-act="import" ${S.readOnly ? "disabled" : ""}>${tr("import")}</button>
   </div>
   <div class="stats">
     <div class="stat"><b>${list.length}</b><span>${tr("stat.exps")}${UI.site !== "all" ? " · " + SITES[UI.site] : ""}</span></div>
@@ -1507,8 +1512,8 @@ function recipeUsageModal(i) {
 
 /* ============================== export / import ============================== */
 async function doExport() {
-  const data = JSON.stringify({ app: "labjournal", version: 1, exportedAt: new Date().toISOString(), experiments: S.exp, reagents: S.rea, samples: S.smp }, null, 1);
-  const fn = `lab-journal-${today()}.json`;
+  const data = JSON.stringify({ ...payload(), exportedAt: new Date().toISOString() }, null, 1);
+  const fn = datedName();
   if (downloads) { try { await downloads.save({ filename: fn, data }); return; } catch (e) { if (e && e.code === "declined") return; } }
   if (S.mode === "local" && saveDownload(fn, data)) return;
   try { await navigator.clipboard.writeText(data); toast(tr("toast.copied")); } catch { toast(tr("toast.saveFail")); }
@@ -1557,12 +1562,12 @@ document.addEventListener("click", (ev) => {
     case "del-parent": o.parentIds = parentsOf(o).filter(x => x !== a.dataset.pid); delete o.parentId; save("experiments", Drawer.id); Drawer.render(); render(); break;
     case "new-rea": newReagent(); break;
     case "export": doExport(); break;
-    case "import": $("#importFile").click(); break;
+    case "import": if (!S.readOnly) $("#importFile").click(); break;
     case "file-open": fileOpen(); break;
     case "file-new": fileNew(); break;
     case "file-reconnect": fileReconnect(); break;
     case "file-unlink": fileUnlink(); break;
-    case "file-save": saveDownload("lab-journal.json", JSON.stringify(payload(), null, 1)) || toast(tr("toast.saveFail")); break;
+    case "file-save": saveDownload(datedName(), JSON.stringify(payload(), null, 1)) || toast(tr("toast.saveFail")); break;
     case "low-reagents": UI.lowOnly = true; break;
     case "add-stage": { const last = (o.stages || [])[o.stages.length - 1]; (o.stages = o.stages || []).push({ id: uid("s"), title: "", date: today(), site: last ? last.site : (TYPES[o.type]?.site || ""), done: false, notes: "", usages: [] }); save("experiments", Drawer.id); Drawer.render(); setTimeout(() => { const s = o.stages[o.stages.length - 1]; const el = $(`#s-${s.id}-t`); if (el) { el.scrollIntoView({ block: "center" }); el.focus(); } }, 30); render(); break; }
     case "preset-stages": { const t = TYPES[o.type]; o.stages = t.stages.map(p => ({ id: uid("s"), title: tr(p.t), date: p.next ? "" : (o.startDate || today()), site: p.site || t.site, done: false, notes: "", usages: (p.use || []).filter(r => S.rea[r]).map(r => ({ reagentId: r, amount: "", unit: S.rea[r].unit, note: "", ts: Date.now() })) })); save("experiments", Drawer.id); Drawer.render(); render(); break; }
