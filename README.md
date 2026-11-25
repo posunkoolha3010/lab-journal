@@ -15,6 +15,5 @@ Open: https://posunkoolha3010.github.io/lab-journal/
 
 - **Chrome or Edge on a computer:** open your `lab-journal.json` — every change is written straight back to that file, and the browser remembers it next time. Start a fresh journal with a new file.
 - **Phone and other browsers:** open the `.json`, work, then save the updated file.
-- Inside claude.ai the same page keeps its data in the artifact database and syncs it between devices.
 
 SDI · LAMMC — Department of Orchard Plant Genetics and Biotechnology
