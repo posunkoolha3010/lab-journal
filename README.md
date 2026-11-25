@@ -1,23 +1,20 @@
-# Лабжурнал Бабтай · Каунас
+# Lab Journal — Babtai · Kaunas
 
-Лабораторный журнал в одном HTML-файле (интерфейс: English, українська, lietuvių, suomi): эксперименты по этапам, расход реагентов, рецепты стоков и остатки, отдельно для лабораторий в Бабтае и Каунасе.
+A lab journal in a single HTML file: experiments broken into stages, reagent use, stock recipes and what is left on the shelf — kept separately for the Babtai and Kaunas labs.
 
-Открыть: https://posunkoolha3010.github.io/lab-journal/
+Open: https://posunkoolha3010.github.io/lab-journal/
 
-**В этом репозитории нет никаких данных.** Все эксперименты и реагенты хранятся в вашем собственном файле `lab-journal.json` на компьютере и в браузере. На GitHub ничего не загружается.
+- Experiments with stages, samples, dates and a log; a new experiment can inherit samples from an earlier one
+- Reagents, stocks, buffers and mixes: recipes, batches, inventory counts and locations
+- Remaining amounts worked out from the events in date order — a refill adds, an inventory count sets, use subtracts
+- Interface in English, Ukrainian, Lithuanian and Finnish
 
-## Как работать
+**No data in this repository.** Experiments and reagents live in your own `lab-journal.json`, on your computer and in your browser. Nothing is uploaded here.
 
-- **Chrome или Edge на компьютере:** «Открыть файл .json» → выбрать свой `lab-journal.json`. Дальше каждое изменение сразу сохраняется в этот файл, а браузер помнит его до следующего раза. Новый пустой журнал: «Создать новый файл».
-- **Телефон и другие браузеры:** «Открыть файл .json», поработать, затем «Сохранить файл» — скачается обновлённый `lab-journal.json`.
-- Внутри claude.ai та же страница хранит данные в базе артефакта и синхронизирует их между устройствами.
+## Getting started
 
-## Как устроены данные
-
-- `experiments/<id>`: название, тип, статус, даты, образцы, `parentId` (из какого эксперимента образцы), `sourceFile`, `stages[]`, `log[]`.
-  - этап: `date`, `site` (`babtai` / `kaunas` / пусто), `done`, `notes`, `usages[]` = `{reagentId, amount, unit, note, ts}`.
-- `reagents/<id>`: `name`, `kind` (`reagent` / `stock` / `buffer` / `mix`), `site`, `unit`, `conc`, `location`, `low`, `recipe {baseAmount, components[], notes}`, `batches[]`.
-  - партия: `kind: "add"` (пополнение) или `"count"` (инвентаризация), `consumed[]` — что списано со стоков при приготовлении.
-- Остаток считается по событиям в порядке дат: пополнение прибавляет, инвентаризация выставляет значение, расход вычитает. До первой партии или инвентаризации остаток «не учтён».
+- **Chrome or Edge on a computer:** open your `lab-journal.json` — every change is written straight back to that file, and the browser remembers it next time. Start a fresh journal with a new file.
+- **Phone and other browsers:** open the `.json`, work, then save the updated file.
+- Inside claude.ai the same page keeps its data in the artifact database and syncs it between devices.
 
 SDI · LAMMC — Department of Orchard Plant Genetics and Biotechnology
